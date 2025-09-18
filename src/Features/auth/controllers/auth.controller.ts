@@ -146,5 +146,126 @@ export class AuthController {
      
         }
      }
+
+    // REGISTER (alias for signup)
+    static async register(req: Request, res: Response) {
+        return AuthController.signup(req, res);
+    }
+
+    // FORGET PASSWORD (alias for forgotPassword)
+    static async forgetPassword(req: Request, res: Response) {
+        return AuthController.forgotPassword(req, res);
+    }
+
+    // CHANGE PASSWORD
+    static async changePassword(req: Request, res: Response) {
+        try {
+            const { currentPassword, newPassword } = req.body;
+            const userId = req.user?.id;
+
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Current password and new password are required"
+                });
+            }
+
+            // TODO: Implement password change logic
+            res.status(200).json({
+                success: true,
+                message: "Password changed successfully"
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to change password"
+            });
+        }
+    }
+
+    // NOTIFICATION ALERTS
+    static async getNotificationAlerts(req: Request, res: Response) {
+        try {
+            const userId = req.user?.id;
+            
+            // TODO: Implement notification alerts logic
+            let response = []; // This will be populated from database
+
+            return res.status(200).json({
+                success: true,
+                message: "Notification alerts retrieved successfully",
+                response
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to retrieve notification alerts"
+            });
+        }
+    }
+
+    static async updateNotificationStatus(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const { status } = req.body;
+            
+            // TODO: Implement notification status update logic
+            let response = {}; // This will be populated after update
+
+            return res.status(200).json({
+                success: true,
+                message: "Notification status updated successfully",
+                response
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to update notification status"
+            });
+        }
+    }
+
+    // PROFILE
+    static async getProfile(req: Request, res: Response) {
+        try {
+            const userId = req.user?.id;
+            
+            // TODO: Implement get profile logic
+            let response = {}; // This will be populated from database
+
+            return res.status(200).json({
+                success: true,
+                message: "Profile retrieved successfully",
+                response
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to retrieve profile"
+            });
+        }
+    }
+
+    static async updateProfile(req: Request, res: Response) {
+        try {
+            const userId = req.user?.id;
+            const profileImage = req.file;
+            
+            // TODO: Implement profile update logic
+            let response = {}; // This will be populated after update
+
+            return res.status(200).json({
+                success: true,
+                message: "Profile updated successfully",
+                response
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: "Failed to update profile"
+            });
+        }
+    }
     
 }

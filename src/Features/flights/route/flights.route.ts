@@ -1,52 +1,40 @@
 import * as express from "express";
 import { Response, Request } from "express";
 import { FlightsController } from "../controllers/flights.controller";
+
 const Router = express.Router();
 
-// ----------------------------------------- Flights ROUTES ---------------------------------------------------
-
-// Legacy route - get all flights
-Router.get("/", (req: Request, res: Response) => {
-  FlightsController.data(req, res);
-});
+// ----------------------------------------- FLIGHTS ROUTES (GOL API INTERMEDIARY) ---------------------------------------------------
 
 // Flight Search Routes
-Router.post("/search", (req: Request, res: Response) => {
+Router.get("/flights/search", (req: Request, res: Response) => {
   FlightsController.searchFlights(req, res);
 });
 
-Router.get("/search/:searchId", (req: Request, res: Response) => {
-  FlightsController.getSearchResults(req, res);
+Router.get("/flights/:id", (req: Request, res: Response) => {
+  FlightsController.getFlightById(req, res);
 });
 
-// Flight Booking Routes
-Router.post("/book", (req: Request, res: Response) => {
-  FlightsController.bookFlight(req, res);
+Router.get("/flights/offers", (req: Request, res: Response) => {
+  FlightsController.getFlightOffers(req, res);
 });
 
-// Reservation Management Routes
-Router.get("/reservations", (req: Request, res: Response) => {
-  FlightsController.getReservations(req, res);
+// Flight Booking Routes (GOL API Integration)
+Router.post("/flights/bookings", (req: Request, res: Response) => {
+  FlightsController.createFlightBooking(req, res);
 });
 
-Router.get("/reservations/:reservationCode", (req: Request, res: Response) => {
-  FlightsController.getReservationDetails(req, res);
+Router.get("/flights/bookings/:id", (req: Request, res: Response) => {
+  FlightsController.getFlightBookingById(req, res);
 });
 
-Router.put(
-  "/reservations/:reservationCode/cancel",
-  (req: Request, res: Response) => {
-    FlightsController.cancelReservation(req, res);
-  }
-);
-
-// Passenger Management Routes
-Router.post("/passengers", (req: Request, res: Response) => {
-  FlightsController.createPassenger(req, res);
+Router.put("/flights/bookings/:id/cancel", (req: Request, res: Response) => {
+  FlightsController.cancelFlightBooking(req, res);
 });
 
-Router.get("/passengers", (req: Request, res: Response) => {
-  FlightsController.getPassengers(req, res);
+// Airports and Utilities
+Router.get("/airports", (req: Request, res: Response) => {
+  FlightsController.getAirports(req, res);
 });
 
 export default Router;

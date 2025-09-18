@@ -11,12 +11,12 @@ import { upload } from "../../../helpers/uploader";
 
 const Router = express.Router();
 
-// ----------------------------------------- USER ROUTES ---------------------------------------------------
-//
-// AUTH
-Router.post("/signup",
+// ----------------------------------------- AUTH ROUTES ---------------------------------------------------
+
+// AUTHENTICATION
+Router.post("/register",
     (req: Request, res: Response) => { 
-        AuthController.signup(req, res)
+        AuthController.register(req, res)
     }
 );
 
@@ -26,20 +26,47 @@ Router.post("/login",
     }
 );
 
-
-// FORGET PASSWORD
-Router.post("/forgot-password",
-    // notification(Notification.FORGOT_PASSWORD),
+Router.post("/forget-password",
     (req: Request, res: Response) => { 
-        AuthController.forgotPassword(req,res)
+        AuthController.forgetPassword(req, res)
     }
 );
 
-// RESET PASSWORD
-Router.post("/reset-password",
-    // notification(Notification.RESET_PASSWORD),
+Router.post("/change-password",
+    authentification,
     (req: Request, res: Response) => { 
-        AuthController.resetPassword(req,res)
+        AuthController.changePassword(req, res)
+    }
+);
+
+// NOTIFICATIONS
+Router.get("/notification-alerts",
+    authentification,
+    (req: Request, res: Response) => { 
+        AuthController.getNotificationAlerts(req, res)
+    }
+);
+
+Router.put("/notification-alerts/:id",
+    authentification,
+    (req: Request, res: Response) => { 
+        AuthController.updateNotificationStatus(req, res)
+    }
+);
+
+// PROFILE
+Router.get("/profile",
+    authentification,
+    (req: Request, res: Response) => { 
+        AuthController.getProfile(req, res)
+    }
+);
+
+Router.put("/profile",
+    authentification,
+    upload.single('profileImage'),
+    (req: Request, res: Response) => { 
+        AuthController.updateProfile(req, res)
     }
 );
 
