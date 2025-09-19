@@ -18,7 +18,8 @@ export class AuthController {
       if (!firstname || !lastname || !email || !password) {
         return res.status(400).json({
           status: false,
-          message: "All fields (firstname, lastname, email, password) are required",
+          message:
+            "All fields (firstname, lastname, email, password) are required",
         });
       }
 
@@ -72,7 +73,6 @@ export class AuthController {
           token,
         },
       });
-
     } catch (error) {
       console.error("Signup error:", error);
       return res.status(500).json({
@@ -105,7 +105,10 @@ export class AuthController {
       }
 
       // Compare password
-      const isPasswordValid = await encrypt.comparepassword(password, user.password);
+      const isPasswordValid = await encrypt.comparepassword(
+        password,
+        user.password
+      );
       if (!isPasswordValid) {
         return res.status(401).json({
           status: false,
@@ -140,7 +143,6 @@ export class AuthController {
           token,
         },
       });
-
     } catch (error) {
       console.error("Login error:", error);
       return res.status(500).json({
@@ -198,7 +200,8 @@ export class AuthController {
 
         return res.status(200).json({
           status: true,
-          message: "Password reset link sent to your email. The link expires in 5 minutes.",
+          message:
+            "Password reset link sent to your email. The link expires in 5 minutes.",
         });
       } catch (emailError) {
         console.error("Email sending error:", emailError);
@@ -238,7 +241,7 @@ export class AuthController {
 
       // Verify the reset token
       const decoded = await encrypt.verifyResetToken(token);
-      if (!decoded || typeof decoded === 'string') {
+      if (!decoded || typeof decoded === "string") {
         return res.status(400).json({
           status: false,
           message: "Invalid or expired reset token",
