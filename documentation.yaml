@@ -1,0 +1,1739 @@
+openapi: 3.0.3
+info:
+  title: Melcom Travels API
+  description: |
+    Comprehensive travel booking and management API for Melcom Travels & Tours
+
+    ## Current Status (Updated: September 18, 2025)
+
+    ### ✅ Fully Working Endpoints:
+    - **Airports Search**: Real GOL API integration - returns live airport data
+    - **Flight Deals**: Mock data endpoints working perfectly
+    - **Flight Deal Categories**: Returns 4 categories (domestic, international, business, budget)  
+    - **Flight Status**: GOL API integration working - returns status responses
+
+    ### ⚠️ Partially Working:
+    - **Flight Search**: Endpoint responds but GOL API DTD validation requires format refinement
+
+    ### 🔧 In Development:
+    - Blog, Countries, Static Content, Contact, Analytics modules (routes configured)
+    - Protected endpoints requiring JWT authentication
+
+    ### GOL API Integration:
+    Uses real GOL API (golapi.golibe.com) with proper JSON request format for flight services.
+  version: 1.0.0
+  contact:
+    name: Melcom Travels Support
+    email: support@melcomtravels.com
+    url: https://melcomtravels.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.melcomtravels.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and profile management
+  - name: Flights
+    description: Flight deals, search, and bookings via GOL API
+  - name: Blogs
+    description: Travel blog posts and categories
+  - name: Countries
+    description: Recommended travel destinations
+  - name: Static Content
+    description: Terms, privacy policy, FAQs, and contact information
+  - name: Contact
+    description: Contact forms and inquiry management
+  - name: Analytics
+    description: User interaction tracking and dashboard analytics
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Common schemas
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+
+    PaginationResponse:
+      type: object
+      properties:
+        current:
+          type: integer
+          example: 1
+        total:
+          type: integer
+          example: 10
+        count:
+          type: integer
+          example: 100
+
+    # Auth schemas
+    UserRegistration:
+      type: object
+      required: [firstname, lastname, email, password]
+      properties:
+        firstname:
+          type: string
+          example: "John"
+        lastname:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          minLength: 6
+          example: "password123"
+
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        password:
+          type: string
+          example: "password123"
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+        firstname:
+          type: string
+          example: "John"
+        lastname:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          example: "john.doe@example.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        dateOfBirth:
+          type: string
+          format: date
+          example: "1990-01-15"
+        address:
+          type: string
+          example: "123 Main St, City, Country"
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          example: "USER"
+        status:
+          type: string
+          enum: [ACTIVE, DEACTIVE]
+          example: "ACTIVE"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    # Flight schemas
+    FlightDeal:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        from:
+          type: string
+          example: "ACC"
+        to:
+          type: string
+          example: "LHR"
+        price:
+          type: number
+          example: 850
+        currency:
+          type: string
+          example: "USD"
+        airline:
+          type: string
+          example: "British Airways"
+        departureDate:
+          type: string
+          format: date
+          example: "2025-10-15"
+        returnDate:
+          type: string
+          format: date
+          example: "2025-10-25"
+        category:
+          type: string
+          example: "international"
+        discount:
+          type: number
+          example: 15
+        image:
+          type: string
+          example: "https://example.com/london.jpg"
+
+    FlightBooking:
+      type: object
+      properties:
+        flightId:
+          type: string
+          example: "1"
+        passenger:
+          type: object
+          properties:
+            firstName:
+              type: string
+              example: "John"
+            lastName:
+              type: string
+              example: "Doe"
+            email:
+              type: string
+              example: "john.doe@example.com"
+            phone:
+              type: string
+              example: "+1234567890"
+            dateOfBirth:
+              type: string
+              format: date
+              example: "1990-01-15"
+            passportNumber:
+              type: string
+              example: "A1234567"
+        seatPreference:
+          type: string
+          example: "Window"
+        specialRequests:
+          type: string
+          example: "Vegetarian meal"
+
+    # Blog schemas
+    Blog:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Top 10 Destinations for 2025"
+        content:
+          type: string
+          example: "Discover the most amazing travel destinations..."
+        excerpt:
+          type: string
+          example: "A brief overview of top destinations"
+        featuredImage:
+          type: string
+          example: "https://example.com/blog-image.jpg"
+        category:
+          type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["travel", "destinations", "2025"]
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED, ARCHIVED]
+          example: "PUBLISHED"
+        featured:
+          type: boolean
+          example: true
+        seoTitle:
+          type: string
+          example: "Best Travel Destinations 2025 | Melcom Travels"
+        seoDescription:
+          type: string
+          example: "Discover the top travel destinations for 2025"
+        seoKeywords:
+          type: array
+          items:
+            type: string
+          example: ["travel", "destinations", "vacation"]
+
+    # Country schemas
+    RecommendedCountry:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "United Kingdom"
+        code:
+          type: string
+          example: "GB"
+        image:
+          type: string
+          example: "https://example.com/uk.jpg"
+        numberOfDestinations:
+          type: integer
+          example: 25
+        description:
+          type: string
+          example: "Explore historic castles and vibrant cities"
+        continent:
+          type: string
+          enum:
+            [
+              Africa,
+              Asia,
+              Europe,
+              North America,
+              South America,
+              Australia,
+              Antarctica,
+            ]
+          example: "Europe"
+        currency:
+          type: string
+          example: "GBP"
+        language:
+          type: string
+          example: "English"
+        bestTimeToVisit:
+          type: string
+          example: "May to September"
+        averageTemperature:
+          type: string
+          example: "10-20°C"
+        featured:
+          type: boolean
+          example: true
+        popular:
+          type: boolean
+          example: true
+
+    # Contact schemas
+    ContactForm:
+      type: object
+      required: [firstName, lastName, email, inquiryType, subject, message]
+      properties:
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        inquiryType:
+          type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+        subject:
+          type: string
+          example: "Flight booking inquiry"
+        message:
+          type: string
+          example: "I need help with booking a flight to London"
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+                example: "document.pdf"
+              url:
+                type: string
+                example: "https://example.com/uploads/document.pdf"
+              mimeType:
+                type: string
+                example: "application/pdf"
+
+    # Analytics schemas
+    LogEvent:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum:
+            [
+              SEARCH_FLIGHTS,
+              CLICK_FLIGHT,
+              CLICK_FLIGHT_DEAL,
+              USE_PROMO,
+              CLICK_BLOG,
+              CLICK_FAQ,
+              VIEW_COUNTRY,
+              BOOK_FLIGHT,
+              CANCEL_BOOKING,
+              CONTACT_FORM,
+              LOGIN,
+              REGISTER,
+              VIEW_PAGE,
+            ]
+          example: "SEARCH_FLIGHTS"
+        metadata:
+          type: object
+          properties:
+            from:
+              type: string
+              example: "ACC"
+            to:
+              type: string
+              example: "LHR"
+            passengers:
+              type: integer
+              example: 2
+            flightType:
+              type: string
+              example: "round-trip"
+            itemId:
+              type: string
+              example: "123"
+            itemType:
+              type: string
+              example: "blog"
+            itemTitle:
+              type: string
+              example: "Travel Tips"
+
+paths:
+  # ================================
+  # API STATUS SUMMARY
+  # ================================
+  # ✅ FULLY WORKING:
+  #   - GET /airports?search={term} - Real GOL API integration
+  #   - GET /flight-deals - Mock data (2 deals)
+  #   - GET /flight-deals/{id} - Single deal retrieval
+  #   - GET /flight-deals-categories - 4 categories
+  #   - GET /flight-status/{bookingRef} - GOL API integration
+  #
+  # ⚠️  PARTIALLY WORKING:
+  #   - GET /flight-search - Responds but needs DTD format refinement
+  #
+  # 🔧 IN DEVELOPMENT:
+  #   - Authentication endpoints (routes configured)
+  #   - Blog, Countries, Static Content, Contact, Analytics modules
+  #   - Protected endpoints requiring JWT authentication
+  # ================================
+
+  # Authentication endpoints
+  /signup:
+    post:
+      tags: [Authentication]
+      summary: Register new user
+      description: |
+        **🔧 IN DEVELOPMENT** - Create a new user account
+
+        Routes configured, needs controller implementation and database integration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistration"
+      responses:
+        "201":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/User"
+
+  /login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      description: Authenticate user and return access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: "#/components/schemas/User"
+                          token:
+                            type: string
+                            example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+  /forgot-password:
+    post:
+      tags: [Authentication]
+      summary: Forgot password
+      description: Send password reset link to user email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+      responses:
+        "200":
+          description: Reset link sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /reset-password:
+    post:
+      tags: [Authentication]
+      summary: Reset password
+      description: Reset user password using token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, newPassword]
+              properties:
+                token:
+                  type: string
+                  example: "reset_token_here"
+                newPassword:
+                  type: string
+                  example: "newpassword123"
+      responses:
+        "200":
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /change-password:
+    post:
+      tags: [Authentication]
+      summary: Change password
+      description: Change current user password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                  example: "oldpassword123"
+                newPassword:
+                  type: string
+                  example: "newpassword123"
+      responses:
+        "200":
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /notification-alerts:
+    get:
+      tags: [Authentication]
+      summary: Get user notifications
+      description: Retrieve all notifications for authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "60f7b3b3b3b3b3b3b3b3b3b3"
+                            title:
+                              type: string
+                              example: "Booking Confirmed"
+                            message:
+                              type: string
+                              example: "Your flight booking has been confirmed"
+                            type:
+                              type: string
+                              enum:
+                                [
+                                  info,
+                                  warning,
+                                  success,
+                                  error,
+                                  booking,
+                                  promo,
+                                  system,
+                                ]
+                              example: "booking"
+                            read:
+                              type: boolean
+                              example: false
+                            createdAt:
+                              type: string
+                              format: date-time
+
+  /notification-alerts/{id}:
+    patch:
+      tags: [Authentication]
+      summary: Update notification status
+      description: Mark notification as read/unread
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [read]
+              properties:
+                read:
+                  type: boolean
+                  example: true
+      responses:
+        "200":
+          description: Notification status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /profile:
+    get:
+      tags: [Authentication]
+      summary: Get user profile
+      description: Retrieve authenticated user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/User"
+
+    put:
+      tags: [Authentication]
+      summary: Update user profile
+      description: Update authenticated user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstname:
+                  type: string
+                  example: "John"
+                lastname:
+                  type: string
+                  example: "Doe"
+                phone:
+                  type: string
+                  example: "+1234567890"
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: "1990-01-15"
+                address:
+                  type: string
+                  example: "123 Main St, City, Country"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/User"
+
+  # Flight endpoints
+  /airports:
+    get:
+      tags: [Flights]
+      summary: Search airports
+      description: |
+        **✅ FULLY WORKING** - Search airports using GOL API integration
+        Returns real airport data from GOL API with live results
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          example: "LON"
+          description: Search term for airport (city or airport code)
+      responses:
+        "200":
+          description: Airports retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          airports:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                code:
+                                  type: string
+                                  example: "LHR"
+                                name:
+                                  type: string
+                                  example: "London - Heathrow"
+                                country:
+                                  type: string
+                                  example: "GB"
+                                state:
+                                  type: string
+                                  example: ""
+                                category:
+                                  type: string
+                                  example: "AIRPORT"
+                                parent:
+                                  type: string
+                                  nullable: true
+                                  example: "LON"
+                          searchedAirports:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                Destination:
+                                  type: string
+                                Parent:
+                                  type: string
+                                ShowCode:
+                                  type: string
+
+  /flight-deals:
+    get:
+      tags: [Flights]
+      summary: Get flight deals
+      description: |
+        **✅ FULLY WORKING** - Retrieve flight deals with optional category filter
+        Returns mock flight deals data (2 deals available)
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+          example: "international"
+          description: Filter by deal category
+      responses:
+        "200":
+          description: Flight deals retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FlightDeal"
+
+  /flight-deals/{id}:
+    get:
+      tags: [Flights]
+      summary: Get flight deal by ID
+      description: |
+        **✅ FULLY WORKING** - Retrieve specific flight deal by ID
+        Available IDs: 1, 2
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "1"
+      responses:
+        "200":
+          description: Flight deal retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/FlightDeal"
+
+  /flight-deals-categories:
+    get:
+      tags: [Flights]
+      summary: Get flight deal categories
+      description: |
+        **✅ FULLY WORKING** - Retrieve all flight deal categories
+        Returns 4 categories: domestic, international, business, budget
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "1"
+                            name:
+                              type: string
+                              example: "international"
+                            description:
+                              type: string
+                              example: "International flights from Ghana"
+                            image:
+                              type: string
+                              example: "https://example.com/international.jpg"
+                            dealCount:
+                              type: integer
+                              example: 42
+
+  /flight-search:
+    get:
+      tags: [Flights]
+      summary: Search flights
+      description: |
+        **⚠️ PARTIALLY WORKING** - Search for available flights using GOL API
+
+        Current Status: Endpoint responds and communicates with GOL API, but DTD format needs refinement.
+        Returns proper GOL API responses but may need parameter adjustment for successful flight searches.
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "ACC"
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "LHR"
+        - name: departureDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2025-10-15"
+        - name: returnDate
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2025-10-25"
+        - name: passengers
+          in: query
+          schema:
+            type: integer
+          example: 2
+        - name: flightType
+          in: query
+          schema:
+            type: string
+            enum: [one-way, round-trip]
+          example: "round-trip"
+        - name: cabinClass
+          in: query
+          schema:
+            type: string
+            enum: [economy, business, first]
+          example: "economy"
+      responses:
+        "200":
+          description: Flight search completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /flight-status/{bookingRef}:
+    get:
+      tags: [Flights]
+      summary: Get flight status
+      description: |
+        **✅ FULLY WORKING** - Get flight status using GOL API
+
+        Successfully communicates with GOL API and returns status responses.
+        Returns StatusResponse with "OK" status from GOL API.
+      parameters:
+        - name: bookingRef
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "MC001"
+          description: Booking reference number
+      responses:
+        "200":
+          description: Flight status retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          GolApi:
+                            type: object
+                            properties:
+                              SecurityContent:
+                                type: string
+                              PassiveSessionId:
+                                type: string
+                              ResponseDetail:
+                                type: object
+                                properties:
+                                  StatusResponse:
+                                    type: object
+                                    properties:
+                                      $t:
+                                        type: string
+                                        example: "OK"
+
+  /flight-bookings:
+    get:
+      tags: [Flights]
+      summary: Get user flight bookings
+      description: Retrieve authenticated user's flight bookings
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Flight bookings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "1"
+                            bookingRef:
+                              type: string
+                              example: "MC001"
+                            status:
+                              type: string
+                              enum: [pending, confirmed, cancelled]
+                              example: "confirmed"
+                            totalAmount:
+                              type: number
+                              example: 850
+                            currency:
+                              type: string
+                              example: "USD"
+                            createdAt:
+                              type: string
+                              format: date-time
+
+    post:
+      tags: [Flights]
+      summary: Create flight booking
+      description: Create new flight booking
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FlightBooking"
+      responses:
+        "201":
+          description: Flight booking created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /flight-bookings/{id}:
+    get:
+      tags: [Flights]
+      summary: Get flight booking by ID
+      description: Retrieve specific flight booking
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "1"
+      responses:
+        "200":
+          description: Flight booking retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  # Blog endpoints
+  /blogs:
+    get:
+      tags: [Blogs]
+      summary: Get blog posts
+      description: |
+        **🔧 IN DEVELOPMENT** - Retrieve blog posts with filtering and pagination
+
+        Routes configured but controllers/services need implementation.
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+          example: "travel-tips"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED, ARCHIVED]
+          example: "PUBLISHED"
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          example: 10
+        - name: search
+          in: query
+          schema:
+            type: string
+          example: "travel tips"
+      responses:
+        "200":
+          description: Blogs retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          blogs:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Blog"
+                          pagination:
+                            $ref: "#/components/schemas/PaginationResponse"
+
+    post:
+      tags: [Blogs]
+      summary: Create blog post
+      description: Create new blog post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Blog"
+      responses:
+        "201":
+          description: Blog created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /blogs/{id}:
+    get:
+      tags: [Blogs]
+      summary: Get blog post by ID
+      description: Retrieve specific blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+      responses:
+        "200":
+          description: Blog retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Blog"
+
+    put:
+      tags: [Blogs]
+      summary: Update blog post
+      description: Update blog post (author only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Blog"
+      responses:
+        "200":
+          description: Blog updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+    delete:
+      tags: [Blogs]
+      summary: Delete blog post
+      description: Delete blog post (author only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "60f7b3b3b3b3b3b3b3b3b3b3"
+      responses:
+        "200":
+          description: Blog deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /blogs-categories:
+    get:
+      tags: [Blogs]
+      summary: Get blog categories
+      description: Retrieve all blog categories
+      responses:
+        "200":
+          description: Blog categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "60f7b3b3b3b3b3b3b3b3b3b3"
+                            name:
+                              type: string
+                              example: "Travel Tips"
+                            slug:
+                              type: string
+                              example: "travel-tips"
+                            description:
+                              type: string
+                              example: "Helpful travel advice and tips"
+                            blogCount:
+                              type: integer
+                              example: 15
+
+    post:
+      tags: [Blogs]
+      summary: Create blog category
+      description: Create new blog category (admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: "Travel Tips"
+                description:
+                  type: string
+                  example: "Helpful travel advice and tips"
+                image:
+                  type: string
+                  example: "https://example.com/category.jpg"
+      responses:
+        "201":
+          description: Blog category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  # Country endpoints
+  /recommended-country-list:
+    get:
+      tags: [Countries]
+      summary: Get recommended countries
+      description: Retrieve all recommended countries
+      responses:
+        "200":
+          description: Recommended countries retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/RecommendedCountry"
+
+  /recommended-country:
+    get:
+      tags: [Countries]
+      summary: Get recommended country by filter
+      description: Get recommended country filtered by country name or code
+      parameters:
+        - name: country
+          in: query
+          schema:
+            type: string
+          example: "United Kingdom"
+      responses:
+        "200":
+          description: Recommended country retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          image:
+                            type: string
+                            example: "https://example.com/uk.jpg"
+                          country:
+                            type: string
+                            example: "United Kingdom"
+                          numberOfDestinations:
+                            type: integer
+                            example: 25
+
+  # Static Content endpoints
+  /terms-and-conditions:
+    get:
+      tags: [Static Content]
+      summary: Get terms and conditions
+      description: Retrieve terms and conditions
+      responses:
+        "200":
+          description: Terms and conditions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                            example: "Terms and Conditions"
+                          content:
+                            type: string
+                            example: "These terms and conditions..."
+                          version:
+                            type: string
+                            example: "1.0"
+                          lastUpdated:
+                            type: string
+                            format: date-time
+
+  /privacy-policy:
+    get:
+      tags: [Static Content]
+      summary: Get privacy policy
+      description: Retrieve privacy policy
+      responses:
+        "200":
+          description: Privacy policy retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /cookies:
+    get:
+      tags: [Static Content]
+      summary: Get cookies policy
+      description: Retrieve cookies policy
+      responses:
+        "200":
+          description: Cookies policy retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /contact-info:
+    get:
+      tags: [Static Content]
+      summary: Get contact information
+      description: Retrieve company contact information
+      responses:
+        "200":
+          description: Contact information retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          email:
+                            type: string
+                            example: "contact@melcomtravels.com"
+                          phone:
+                            type: string
+                            example: "+233 123 456 789"
+                          whatsapp:
+                            type: string
+                            example: "+233 987 654 321"
+                          address:
+                            type: object
+                            properties:
+                              street:
+                                type: string
+                                example: "123 Travel Street"
+                              city:
+                                type: string
+                                example: "Accra"
+                              country:
+                                type: string
+                                example: "Ghana"
+                          socialMedia:
+                            type: object
+                            properties:
+                              facebook:
+                                type: string
+                                example: "https://facebook.com/melcomtravels"
+                              instagram:
+                                type: string
+                                example: "https://instagram.com/melcomtravels"
+                          businessHours:
+                            type: object
+                            properties:
+                              monday:
+                                type: string
+                                example: "9:00 AM - 5:00 PM"
+                              tuesday:
+                                type: string
+                                example: "9:00 AM - 5:00 PM"
+
+  /faqs:
+    get:
+      tags: [Static Content]
+      summary: Get FAQs
+      description: Retrieve frequently asked questions
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [general, booking, payment, flights, cancellation, support]
+          example: "booking"
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+          example: true
+      responses:
+        "200":
+          description: FAQs retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "60f7b3b3b3b3b3b3b3b3b3b3"
+                            question:
+                              type: string
+                              example: "How can I book a flight?"
+                            answer:
+                              type: string
+                              example: "You can book a flight by..."
+                            category:
+                              type: string
+                              example: "booking"
+                            featured:
+                              type: boolean
+                              example: true
+
+  # Contact endpoints
+  /contact-us-form:
+    post:
+      tags: [Contact]
+      summary: Submit contact form
+      description: Submit a contact form inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactForm"
+      responses:
+        "201":
+          description: Contact form submitted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "60f7b3b3b3b3b3b3b3b3b3b3"
+                          referenceNumber:
+                            type: string
+                            example: "MC-B3B3B3B3"
+
+  /inquiry-types:
+    get:
+      tags: [Contact]
+      summary: Get inquiry types
+      description: Retrieve available inquiry types
+      responses:
+        "200":
+          description: Inquiry types retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              example: "60f7b3b3b3b3b3b3b3b3b3b3"
+                            name:
+                              type: string
+                              example: "Flight Booking"
+                            description:
+                              type: string
+                              example: "Questions about flight bookings"
+
+  # Analytics endpoints
+  /logs:
+    post:
+      tags: [Analytics]
+      summary: Log event
+      description: Log user interaction event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogEvent"
+      responses:
+        "200":
+          description: Event logged successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
+  /total-users:
+    get:
+      tags: [Analytics]
+      summary: Get total users count
+      description: Retrieve total number of registered users (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Total users retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalUsers:
+                            type: integer
+                            example: 1250
+
+  /total-bookings:
+    get:
+      tags: [Analytics]
+      summary: Get total bookings count
+      description: Retrieve total number of flight bookings (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Total bookings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalBookings:
+                            type: integer
+                            example: 450
+
+  /total-amount:
+    get:
+      tags: [Analytics]
+      summary: Get total revenue amount
+      description: Retrieve total revenue from bookings (admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Total amount retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          totalAmount:
+                            type: number
+                            example: 382500
+                          currency:
+                            type: string
+                            example: "USD"
+
+  /dashboard:
+    get:
+      tags: [Analytics]
+      summary: Get analytics dashboard
+      description: Retrieve comprehensive analytics dashboard data (admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+          example: 30
+          description: Number of days for historical data
+      responses:
+        "200":
+          description: Analytics dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          summary:
+                            type: object
+                            properties:
+                              totalUsers:
+                                type: integer
+                                example: 1250
+                              totalBookings:
+                                type: integer
+                                example: 450
+                              totalAmount:
+                                type: number
+                                example: 382500
+                              totalCancellations:
+                                type: integer
+                                example: 25
+                              totalContactForms:
+                                type: integer
+                                example: 180
+                          popularDestinations:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                destination:
+                                  type: string
+                                  example: "LHR"
+                                searchCount:
+                                  type: integer
+                                  example: 150
+                                bookingCount:
+                                  type: integer
+                                  example: 45
+                          conversionRates:
+                            type: object
+                            properties:
+                              searchToBooking:
+                                type: number
+                                example: 30
+                              contactToBooking:
+                                type: number
+                                example: 25
