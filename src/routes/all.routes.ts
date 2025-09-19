@@ -4,7 +4,6 @@ import path = require("path");
 // Existing routes
 import userRoutes from "../Features/auth/route/user.routes";
 import authRoutes from "../Features/auth/route/auth.routes";
-import accountsRoutes from "../Features/accounts/route/accounts.route";
 
 // New routes for Melcom Travels API
 import blogRoutes from "../Features/blogs/route/blog.route";
@@ -72,8 +71,5 @@ Router.use("/", contactRoutes);
  *     summary: Analytics routes (logging, dashboard, statistics)
  */
 Router.use("/", analyticsRoutes);
-
-// Legacy test route
-Router.use("/test", accountsRoutes);
 
 export { Router };
