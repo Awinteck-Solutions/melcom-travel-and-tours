@@ -15,4 +15,16 @@ export class encrypt {
   static async generateToken(payload: any) {
     return await jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
   }
+
+  static async generateResetToken(payload: any) {
+    return await jwt.sign(payload, JWT_SECRET, { expiresIn: "5m" });
+  }
+
+  static async verifyResetToken(token: string) {
+    try {
+      return jwt.verify(token, JWT_SECRET);
+    } catch (error) {
+      return null;
+    }
+  }
 }

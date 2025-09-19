@@ -22,7 +22,7 @@ const Router = express.Router();
  *   get:
  *     summary: Authentication routes (login, register, password management, notifications, profile)
  */
-Router.use("/", authRoutes);
+Router.use("/auth", authRoutes);
 
 /**
  * @swagger

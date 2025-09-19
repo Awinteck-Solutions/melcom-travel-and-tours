@@ -15,146 +15,262 @@ export class AuthController {
     try {
       const { firstname, lastname, email, password } = req.body;
 
-      // Check if the email already exists
-      //generate OTP code
-      var otp = getRandomInt(999, 9999);
+      if (!firstname || !lastname || !email || !password) {
+        return res.status(400).json({
+          status: false,
+          message: "All fields (firstname, lastname, email, password) are required",
+        });
+      }
 
+      // Check if the email already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(409).json({
+          status: false,
+          message: "User with this email already exists",
+        });
+      }
+
+      // Generate OTP code
+      const otp = getRandomInt(999, 9999);
       const encryptedPassword = await encrypt.encryptpass(password);
 
-      const user = User({
+      const user = new User({
         firstname,
         lastname,
         email,
         password: encryptedPassword,
         otp,
       });
-      user
-        .save()
-        .then((user) => {
-          const token = encrypt.generateToken({
-            id: user.id,
-            email: user.email,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            role: user.role,
-          });
 
-          return res.status(201).json({
-            status: true,
-            message: "New User registered",
-            user: { ...user._doc, token },
-          });
-        })
-        .catch((error) => {
-          console.log("error :>> ", error);
-          return res.status(404).json({
-            status: false,
-            message: "Unsuccessful registration",
-            other: error,
-          });
-        });
+      const savedUser = await user.save();
 
-      //    sendMail(
-      //     user.email,
-      //     user.firstname,
-      //     'LMG - Welcome',
-      //     'signupHtml',''
-      // )
+      // Generate JWT token
+      const token = await encrypt.generateToken({
+        id: savedUser._id,
+        email: savedUser.email,
+        firstname: savedUser.firstname,
+        lastname: savedUser.lastname,
+        role: savedUser.role,
+      });
+
+      // Remove sensitive data from response
+      const userResponse = {
+        id: savedUser._id,
+        firstname: savedUser.firstname,
+        lastname: savedUser.lastname,
+        email: savedUser.email,
+        role: savedUser.role,
+        status: savedUser.status,
+      };
+
+      return res.status(201).json({
+        status: true,
+        message: "New User registered successfully",
+        data: {
+          user: userResponse,
+          token,
+        },
+      });
+
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: error["sqlMessage"] });
+      console.error("Signup error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
   }
 
   // LOGIN
-
   static async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
+
       if (!email || !password) {
-        return res
-          .status(500)
-          .json({ message: " email and password required" });
-      }
-      console.log("email, password :>> ", email, password);
-
-      User.findOne({ email })
-        .then((user) => {
-          console.log("result :>> ", user);
-          let remotePassword = user.password;
-          encrypt
-            .comparepassword(password, remotePassword)
-            .then((result) => {
-              if (result == true) {
-                console.log("bcrypt message", result);
-                //sending response
-                const token = encrypt.generateToken({
-                  id: user._id,
-                  email: user.email,
-                  firstname: user.firstname,
-                  lastname: user.lastname,
-                  role: user.role,
-                });
-                return res.json({
-                  status: true,
-                  message: "Login success",
-                  response: { ...user, token },
-                });
-              } else {
-                res.status(404).json({
-                  status: false,
-                  message: "password incorrect!",
-                });
-              }
-            })
-            .catch((err) => {
-              res.status(404).json({
-                status: false,
-                message: "password error!",
-              });
-              return;
-            });
-        })
-        .catch((error) => {
-          res.status(404).json({
-            status: false,
-            message: "password incorrect!",
-          });
+        return res.status(400).json({
+          status: false,
+          message: "Email and password are required",
         });
+      }
 
-      // sendMail(
-      //     'barnabassampawin@gmail.com',
-      //     user.firstname,
-      //     'Login success',
-      //     'signup',''
-      // )
+      // Find user by email
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Compare password
+      const isPasswordValid = await encrypt.comparepassword(password, user.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Generate JWT token
+      const token = await encrypt.generateToken({
+        id: user._id,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        role: user.role,
+      });
+
+      // Remove sensitive data from response
+      const userResponse = {
+        id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      };
+
+      return res.status(200).json({
+        status: true,
+        message: "Login successful",
+        data: {
+          user: userResponse,
+          token,
+        },
+      });
+
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal server error" });
+      console.error("Login error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
   }
 
   // FORGET PASSWORD
   static async forgotPassword(req: Request, res: Response) {
     try {
-      res.status(200).json({ message: "Reset token sent to your email" });
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          status: false,
+          message: "Email is required",
+        });
+      }
+
+      // Check if user exists
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User with this email does not exist",
+        });
+      }
+
+      // Generate JWT token for password reset (expires in 5 minutes)
+      const resetToken = await encrypt.generateResetToken({
+        userId: user._id,
+        email: user.email,
+      });
+
+      // Create reset link
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
+      const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+      // Send email with reset link
+      try {
+        await sendMail(
+          user.email,
+          user.firstname || "User",
+          "Password Reset Request - Melcom Travels",
+          "resetPasswordHtml",
+          {
+            resetLink,
+            firstname: user.firstname || "User",
+            expiresIn: "5 minutes",
+          }
+        );
+
+        return res.status(200).json({
+          status: true,
+          message: "Password reset link sent to your email. The link expires in 5 minutes.",
+        });
+      } catch (emailError) {
+        console.error("Email sending error:", emailError);
+        return res.status(500).json({
+          status: false,
+          message: "Failed to send reset email. Please try again.",
+        });
+      }
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: error["sqlMessage"] });
+      console.error("Forgot password error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
   }
+
   // RESET PASSWORD
   static async resetPassword(req: Request, res: Response) {
     try {
-      res
-        .status(200)
-        .json({ message: "Your password has been reset successfull" });
+      const { token, newPassword, confirmPassword } = req.body;
+
+      if (!token || !newPassword || !confirmPassword) {
+        return res.status(400).json({
+          status: false,
+          message: "Token, new password, and confirm password are required",
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({
+          status: false,
+          message: "New password and confirm password do not match",
+        });
+      }
+
+      // Verify the reset token
+      const decoded = await encrypt.verifyResetToken(token);
+      if (!decoded || typeof decoded === 'string') {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid or expired reset token",
+        });
+      }
+
+      // Find user by ID from token
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
+
+      // Encrypt new password
+      const encryptedPassword = await encrypt.encryptpass(newPassword);
+
+      // Update user password
+      await User.findByIdAndUpdate(user._id, { password: encryptedPassword });
+
+      return res.status(200).json({
+        status: true,
+        message: "Your password has been reset successfully",
+      });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: error["sqlMessage"] });
+      console.error("Reset password error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+        error: error.message,
+      });
     }
   }
 
