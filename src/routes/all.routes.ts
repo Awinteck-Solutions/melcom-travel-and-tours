@@ -11,6 +11,7 @@ import countriesRoutes from "../Features/countries/route/countries.route";
 import staticContentRoutes from "../Features/static-content/route/static-content.route";
 import contactRoutes from "../Features/contact/route/contact.route";
 import analyticsRoutes from "../Features/analytics/route/analytics.route";
+import flightsRoutes from "../Features/flights/route/flights.route";
 
 const Router = express.Router();
 
@@ -71,5 +72,13 @@ Router.use("/", contactRoutes);
  *     summary: Analytics routes (logging, dashboard, statistics)
  */
 Router.use("/", analyticsRoutes);
+
+/**
+ * @swagger
+ * /flights:
+ *   get:
+ *     summary: Flights routes (flight deals, bookings, categories)
+ */
+Router.use("/", flightsRoutes);
 
 export { Router };

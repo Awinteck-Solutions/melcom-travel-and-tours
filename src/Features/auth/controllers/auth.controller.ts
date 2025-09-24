@@ -281,12 +281,29 @@ export class AuthController {
   static async changePassword(req: Request, res: Response) {
     try {
       const { currentPassword, newPassword } = req.body;
-      const userId = (req as any).user?.id;
+
+      // Get user ID from JWT token via authentication middleware
+      const userId = req["currentUser"];
+
+      if (!userId) {
+        return res.status(401).json({
+          status: false,
+          message: "Authentication required. Please log in.",
+        });
+      }
 
       if (!currentPassword || !newPassword) {
         return res.status(400).json({
           status: false,
           message: "Current password and new password are required",
+        });
+      }
+
+      // Validate new password strength (optional)
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          status: false,
+          message: "New password must be at least 6 characters long",
         });
       }
 
@@ -298,6 +315,7 @@ export class AuthController {
         });
       }
 
+      // Verify current password
       const isValidPassword = await encrypt.comparepassword(
         currentPassword,
         user.password
@@ -309,15 +327,31 @@ export class AuthController {
         });
       }
 
+      // Check if new password is different from current password
+      const isSamePassword = await encrypt.comparepassword(
+        newPassword,
+        user.password
+      );
+      if (isSamePassword) {
+        return res.status(400).json({
+          status: false,
+          message: "New password must be different from current password",
+        });
+      }
+
+      // Encrypt new password and update user
       const encryptedNewPassword = await encrypt.encryptpass(newPassword);
-      await User.findByIdAndUpdate(userId, { password: encryptedNewPassword });
+      await User.findByIdAndUpdate(userId, {
+        password: encryptedNewPassword,
+        updatedAt: new Date(),
+      });
 
       return res.status(200).json({
         status: true,
         message: "Password changed successfully",
       });
     } catch (error) {
-      console.log("error :>> ", error);
+      console.log("Change password error:", error);
       return res.status(500).json({
         status: false,
         message: "Internal server error",
@@ -329,7 +363,15 @@ export class AuthController {
   // GET NOTIFICATIONS
   static async getNotifications(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.id;
+      const userId = req["currentUser"];
+
+      if (!userId) {
+        return res.status(401).json({
+          status: false,
+          message: "Authentication required. Please log in.",
+        });
+      }
+
       const notifications = await Notification.find({ userId }).sort({
         createdAt: -1,
       });
