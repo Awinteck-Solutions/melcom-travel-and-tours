@@ -77,7 +77,7 @@ Router.use("/", analyticsRoutes);
  * @swagger
  * /flights:
  *   get:
- *     summary: Flights routes (flight deals, bookings, categories)
+ *     summary: Flight routes (deals, bookings, search, categories)
  */
 Router.use("/", flightsRoutes);
 

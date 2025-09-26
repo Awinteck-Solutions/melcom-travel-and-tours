@@ -7,13 +7,13 @@ info:
     ## Current Status (Updated: September 18, 2025)
 
     ### ✅ Fully Working Endpoints:
-    - **Airports Search**: Real GOL API integration - returns live airport data
-    - **Flight Deals**: Mock data endpoints working perfectly
-    - **Flight Deal Categories**: Returns 4 categories (domestic, international, business, budget)  
-    - **Flight Status**: GOL API integration working - returns status responses
+    - **Flight Deals**: Real GOL API integration - returns live special offers with airport/airline data
+    - **Search Destinations**: Real GOL API integration - returns airport/city search results
+    - **Flight Deal Categories**: Implementation pending placeholder
+    - **Flight Bookings**: CRUD operations (placeholder implementation)
 
     ### ⚠️ Partially Working:
-    - **Flight Search**: Endpoint responds but GOL API DTD validation requires format refinement
+    - **Search Flights**: GOL API integration working but request payload needs DTD compliance
 
     ### 🔧 In Development:
     - Blog, Countries, Static Content, Contact, Analytics modules (routes configured)
@@ -21,6 +21,7 @@ info:
 
     ### GOL API Integration:
     Uses real GOL API (golapi.golibe.com) with proper JSON request format for flight services.
+    All flight endpoints return raw GOL API responses for maximum flexibility.
   version: 1.0.0
   contact:
     name: Melcom Travels Support
@@ -158,9 +159,214 @@ components:
           type: string
           format: date-time
 
-    # Flight schemas
+    # Flight schemas - Updated to match current GOL API integration
+    FlightDealsResponse:
+      type: object
+      description: Raw GOL API response structure for flight deals
+      properties:
+        GolApi:
+          type: object
+          properties:
+            SecurityContent:
+              type: string
+              example: "grznguklO9QG6BrwGGw="
+            PassiveSessionId:
+              type: string
+              example: "116417370"
+            Settings:
+              type: object
+              properties:
+                Localization:
+                  type: object
+                  properties:
+                    Language:
+                      type: string
+                      example: "en"
+                    Country:
+                      type: string
+                      example: "CZ"
+                Currency:
+                  type: object
+                  properties:
+                    Code:
+                      type: string
+                      example: "GHS"
+            CodeBook:
+              type: object
+              properties:
+                Airports:
+                  type: object
+                  properties:
+                    Airport:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            example: "ACC"
+                          Country:
+                            type: string
+                            example: "GH"
+                          $t:
+                            type: string
+                            example: "Accra - Kotoka"
+                TransportCompanies:
+                  type: object
+                  properties:
+                    TransportCompany:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            example: "SA"
+                          Name:
+                            type: object
+                            properties:
+                              $t:
+                                type: string
+                                example: "SOUTH AFRICAN AIRWAYS"
+            ResponseDetail:
+              type: object
+              properties:
+                ListSpecialoffersResponse_1:
+                  type: object
+                  properties:
+                    ListSpecialoffers:
+                      type: object
+                      properties:
+                        SpecialofferItem:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              SpecialOfferId:
+                                type: string
+                                example: "46461"
+                              Type:
+                                type: string
+                                example: "flight"
+                              MarketingAirline:
+                                type: string
+                                example: "SA"
+                              SpecialOfferSteps:
+                                type: object
+                                properties:
+                                  SpecialOfferStep:
+                                    type: array
+                                    items:
+                                      type: object
+                                      properties:
+                                        Origin:
+                                          type: string
+                                          example: "ACC"
+                                        Destination:
+                                          type: string
+                                          example: "ABJ"
+                              SummaryPrice:
+                                type: object
+                                properties:
+                                  FullPrice:
+                                    type: string
+                                    example: "3335.00"
+
+    SearchDestinationsResponse:
+      type: object
+      description: Raw GOL API response structure for destination search
+      properties:
+        GolApi:
+          type: object
+          properties:
+            SecurityContent:
+              type: string
+              example: "DKr2WcxUDvpzrqORfnLS6Qk="
+            PassiveSessionId:
+              type: string
+              example: "116417370"
+            CodeBook:
+              type: object
+              properties:
+                Airports:
+                  type: object
+                  properties:
+                    Airport:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          Code:
+                            type: string
+                            example: "LAX"
+                          Country:
+                            type: string
+                            example: "US"
+                          State:
+                            type: string
+                            example: "CA"
+                          Category:
+                            type: string
+                            example: "AIRPORT"
+                          $t:
+                            type: string
+                            example: "Los Angeles"
+            ResponseDetail:
+              type: object
+              properties:
+                SearchDestinationsResponse_1:
+                  type: object
+                  properties:
+                    SearchedAirports:
+                      type: object
+                      properties:
+                        SearchedAirport:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              Destination:
+                                type: string
+                                example: "LAX"
+                              Parent:
+                                type: string
+                                example: "LAX+"
+                              ShowCode:
+                                type: string
+                                example: "true"
+
+    SearchFlightsRequestDto:
+      type: object
+      description: Request DTO for flight search
+      required: [origin, destination, date]
+      properties:
+        origin:
+          type: string
+          example: "ACC"
+          description: Origin airport code
+        destination:
+          type: string
+          example: "LAX"
+          description: Destination airport code
+        date:
+          type: string
+          format: date
+          example: "2025-10-26"
+          description: Departure date (YYYY-MM-DD)
+
+    SearchDestinationsRequestDto:
+      type: object
+      description: Request DTO for destination search
+      properties:
+        query:
+          type: string
+          example: "Los Angeles"
+          description: Search term for airport or city
+
     FlightDeal:
       type: object
+      deprecated: true
+      description: "Legacy schema - now using raw GOL API responses"
       properties:
         id:
           type: string
@@ -724,243 +930,23 @@ paths:
                         $ref: "#/components/schemas/User"
 
   # Flight endpoints
-  /airports:
-    get:
-      tags: [Flights]
-      summary: Search airports
-      description: |
-        **✅ FULLY WORKING** - Search airports using GOL API integration
-        Returns real airport data from GOL API with live results
-      parameters:
-        - name: search
-          in: query
-          schema:
-            type: string
-          example: "LON"
-          description: Search term for airport (city or airport code)
-      responses:
-        "200":
-          description: Airports retrieved successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          airports:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                code:
-                                  type: string
-                                  example: "LHR"
-                                name:
-                                  type: string
-                                  example: "London - Heathrow"
-                                country:
-                                  type: string
-                                  example: "GB"
-                                state:
-                                  type: string
-                                  example: ""
-                                category:
-                                  type: string
-                                  example: "AIRPORT"
-                                parent:
-                                  type: string
-                                  nullable: true
-                                  example: "LON"
-                          searchedAirports:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                Destination:
-                                  type: string
-                                Parent:
-                                  type: string
-                                ShowCode:
-                                  type: string
-
   /flight-deals:
     get:
       tags: [Flights]
       summary: Get flight deals
       description: |
-        **✅ FULLY WORKING** - Retrieve flight deals with optional category filter
-        Returns mock flight deals data (2 deals available)
+        **✅ FULLY WORKING** - Retrieve flight deals using GOL API integration
+        Returns real special offers with airport codes, airline information, and prices in GHS
       parameters:
         - name: category
           in: query
           schema:
             type: string
-          example: "international"
-          description: Filter by deal category
+          example: "flight"
+          description: Optional category filter
       responses:
         "200":
           description: Flight deals retrieved successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/FlightDeal"
-
-  /flight-deals/{id}:
-    get:
-      tags: [Flights]
-      summary: Get flight deal by ID
-      description: |
-        **✅ FULLY WORKING** - Retrieve specific flight deal by ID
-        Available IDs: 1, 2
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          example: "1"
-      responses:
-        "200":
-          description: Flight deal retrieved successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        $ref: "#/components/schemas/FlightDeal"
-
-  /flight-deals-categories:
-    get:
-      tags: [Flights]
-      summary: Get flight deal categories
-      description: |
-        **✅ FULLY WORKING** - Retrieve all flight deal categories
-        Returns 4 categories: domestic, international, business, budget
-      responses:
-        "200":
-          description: Categories retrieved successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/ApiResponse"
-                  - type: object
-                    properties:
-                      data:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              example: "1"
-                            name:
-                              type: string
-                              example: "international"
-                            description:
-                              type: string
-                              example: "International flights from Ghana"
-                            image:
-                              type: string
-                              example: "https://example.com/international.jpg"
-                            dealCount:
-                              type: integer
-                              example: 42
-
-  /flight-search:
-    get:
-      tags: [Flights]
-      summary: Search flights
-      description: |
-        **⚠️ PARTIALLY WORKING** - Search for available flights using GOL API
-
-        Current Status: Endpoint responds and communicates with GOL API, but DTD format needs refinement.
-        Returns proper GOL API responses but may need parameter adjustment for successful flight searches.
-      parameters:
-        - name: from
-          in: query
-          required: true
-          schema:
-            type: string
-          example: "ACC"
-        - name: to
-          in: query
-          required: true
-          schema:
-            type: string
-          example: "LHR"
-        - name: departureDate
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date
-          example: "2025-10-15"
-        - name: returnDate
-          in: query
-          schema:
-            type: string
-            format: date
-          example: "2025-10-25"
-        - name: passengers
-          in: query
-          schema:
-            type: integer
-          example: 2
-        - name: flightType
-          in: query
-          schema:
-            type: string
-            enum: [one-way, round-trip]
-          example: "round-trip"
-        - name: cabinClass
-          in: query
-          schema:
-            type: string
-            enum: [economy, business, first]
-          example: "economy"
-      responses:
-        "200":
-          description: Flight search completed successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiResponse"
-
-  /flight-status/{bookingRef}:
-    get:
-      tags: [Flights]
-      summary: Get flight status
-      description: |
-        **✅ FULLY WORKING** - Get flight status using GOL API
-
-        Successfully communicates with GOL API and returns status responses.
-        Returns StatusResponse with "OK" status from GOL API.
-      parameters:
-        - name: bookingRef
-          in: path
-          required: true
-          schema:
-            type: string
-          example: "MC001"
-          description: Booking reference number
-      responses:
-        "200":
-          description: Flight status retrieved successfully
           content:
             application/json:
               schema:
@@ -976,25 +962,387 @@ paths:
                             properties:
                               SecurityContent:
                                 type: string
+                                example: "grznguklO9QG6BrwGGw="
                               PassiveSessionId:
                                 type: string
+                                example: "116417370"
+                              Settings:
+                                type: object
+                                properties:
+                                  Localization:
+                                    type: object
+                                    properties:
+                                      Language:
+                                        type: string
+                                        example: "en"
+                                      Country:
+                                        type: string
+                                        example: "CZ"
+                                  Currency:
+                                    type: object
+                                    properties:
+                                      Code:
+                                        type: string
+                                        example: "GHS"
+                              CodeBook:
+                                type: object
+                                properties:
+                                  Airports:
+                                    type: object
+                                    properties:
+                                      Airport:
+                                        type: array
+                                        items:
+                                          type: object
+                                          properties:
+                                            Code:
+                                              type: string
+                                              example: "ACC"
+                                            Parent:
+                                              type: string
+                                              example: ""
+                                            Country:
+                                              type: string
+                                              example: "GH"
+                                            State:
+                                              type: string
+                                              example: ""
+                                            $t:
+                                              type: string
+                                              example: "Accra - Kotoka"
+                                  TransportCompanies:
+                                    type: object
+                                    properties:
+                                      TransportCompany:
+                                        type: array
+                                        items:
+                                          type: object
+                                          properties:
+                                            Type:
+                                              type: string
+                                              example: "company"
+                                            Code:
+                                              type: string
+                                              example: "SA"
+                                            Name:
+                                              type: object
+                                              properties:
+                                                $t:
+                                                  type: string
+                                                  example: "SOUTH AFRICAN AIRWAYS"
+                                            LogoUrl:
+                                              type: object
+                                              properties:
+                                                $t:
+                                                  type: string
+                                                  example: "https://fs.golibe.com/cache/ao-467170-SA.png"
                               ResponseDetail:
                                 type: object
                                 properties:
-                                  StatusResponse:
+                                  ListSpecialoffersResponse_1:
                                     type: object
                                     properties:
-                                      $t:
+                                      ListSpecialoffers:
+                                        type: object
+                                        properties:
+                                          SpecialofferItem:
+                                            type: array
+                                            items:
+                                              type: object
+                                              properties:
+                                                SpecialOfferId:
+                                                  type: string
+                                                  example: "46461"
+                                                Type:
+                                                  type: string
+                                                  example: "flight"
+                                                MarketingAirline:
+                                                  type: string
+                                                  example: "SA"
+                                                SpecialOfferSteps:
+                                                  type: object
+                                                  properties:
+                                                    SpecialOfferStep:
+                                                      type: array
+                                                      items:
+                                                        type: object
+                                                        properties:
+                                                          Origin:
+                                                            type: string
+                                                            example: "ACC"
+                                                          Destination:
+                                                            type: string
+                                                            example: "ABJ"
+                                                          DateRange:
+                                                            type: object
+                                                            properties:
+                                                              DateFrom:
+                                                                type: string
+                                                                example: "2025-09-01"
+                                                              DateTo:
+                                                                type: string
+                                                                example: "2025-11-30"
+                                                SummaryPrice:
+                                                  type: object
+                                                  properties:
+                                                    FullPrice:
+                                                      type: string
+                                                      example: "3335.00"
+
+  /search-destinations:
+    get:
+      tags: [Flights]
+      summary: Search destinations
+      description: |
+        **✅ FULLY WORKING** - Search airports and cities using GOL API integration
+        Returns real airport/city search results with detailed information
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+          example: "Los Angeles"
+          description: Search term for airport or city (defaults to "Los Angeles")
+      responses:
+        "200":
+          description: Destinations retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          GolApi:
+                            type: object
+                            properties:
+                              SecurityContent:
+                                type: string
+                                example: "DKr2WcxUDvpzrqORfnLS6Qk="
+                              PassiveSessionId:
+                                type: string
+                                example: "116417370"
+                              Settings:
+                                type: object
+                                properties:
+                                  Localization:
+                                    type: object
+                                    properties:
+                                      Language:
                                         type: string
-                                        example: "OK"
+                                        example: "en"
+                                      Country:
+                                        type: string
+                                        example: "CZ"
+                              CodeBook:
+                                type: object
+                                properties:
+                                  Airports:
+                                    type: object
+                                    properties:
+                                      Airport:
+                                        type: array
+                                        items:
+                                          type: object
+                                          properties:
+                                            Code:
+                                              type: string
+                                              example: "LAX"
+                                            Parent:
+                                              type: string
+                                              example: "LAX+"
+                                            Country:
+                                              type: string
+                                              example: "US"
+                                            State:
+                                              type: string
+                                              example: "CA"
+                                            Category:
+                                              type: string
+                                              example: "AIRPORT"
+                                            $t:
+                                              type: string
+                                              example: "Los Angeles"
+                              ResponseDetail:
+                                type: object
+                                properties:
+                                  SearchDestinationsResponse_1:
+                                    type: object
+                                    properties:
+                                      SearchedAirports:
+                                        type: object
+                                        properties:
+                                          SearchedAirport:
+                                            type: array
+                                            items:
+                                              type: object
+                                              properties:
+                                                Destination:
+                                                  type: string
+                                                  example: "LAX"
+                                                Parent:
+                                                  type: string
+                                                  example: "LAX+"
+                                                ShowCode:
+                                                  type: string
+                                                  example: "true"
+
+  /search-flights:
+    get:
+      tags: [Flights]
+      summary: Search flights
+      description: |
+        **⚠️ PARTIALLY WORKING** - Search for available flights using GOL API
+        
+        Current Status: Endpoint communicates with GOL API but returns DTD validation errors.
+        The request payload structure needs adjustment to match GOL API's expected XML schema.
+      parameters:
+        - name: origin
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "ACC"
+          description: Origin airport code
+        - name: destination
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "LAX"
+          description: Destination airport code
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          example: "2025-10-26"
+          description: Departure date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: Flight search response (may contain validation errors)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          GolApi:
+                            type: object
+                            properties:
+                              PassiveSessionId:
+                                type: string
+                                example: "123456789"
+                              Settings:
+                                type: object
+                              ResponseDetail:
+                                type: object
+                                properties:
+                                  SystemRequestError_1:
+                                    type: object
+                                    properties:
+                                      Error:
+                                        type: array
+                                        items:
+                                          type: object
+                                          properties:
+                                            Type:
+                                              type: string
+                                              example: "incorrect"
+                                            Code:
+                                              type: string
+                                              example: "0002"
+                                            $t:
+                                              type: string
+                                              example: "No valid XML document..."
+        "400":
+          description: Missing required parameters
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      status:
+                        example: false
+                      message:
+                        example: "Origin, destination, and date are required"
+
+  /flight-deals/{id}:
+    get:
+      tags: [Flights]
+      summary: Get flight deal by ID
+      description: |
+        **🔧 PLACEHOLDER** - Retrieve specific flight deal by ID
+        Currently returns placeholder response - implementation pending
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "46461"
+      responses:
+        "200":
+          description: Flight deal retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "46461"
+                          message:
+                            type: string
+                            example: "Implementation pending"
+
+  /flight-deals-categories:
+    get:
+      tags: [Flights]
+      summary: Get flight deal categories
+      description: |
+        **🔧 PLACEHOLDER** - Retrieve all flight deal categories
+        Currently returns placeholder response - implementation pending
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Implementation pending"
 
   /flight-bookings:
     get:
       tags: [Flights]
-      summary: Get user flight bookings
-      description: Retrieve authenticated user's flight bookings
-      security:
-        - bearerAuth: []
+      summary: Get flight bookings
+      description: |
+        **🔧 PLACEHOLDER** - Retrieve all flight bookings
+        Currently returns placeholder response - implementation pending
       responses:
         "200":
           description: Flight bookings retrieved successfully
@@ -1006,71 +1354,90 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              example: "1"
-                            bookingRef:
-                              type: string
-                              example: "MC001"
-                            status:
-                              type: string
-                              enum: [pending, confirmed, cancelled]
-                              example: "confirmed"
-                            totalAmount:
-                              type: number
-                              example: 850
-                            currency:
-                              type: string
-                              example: "USD"
-                            createdAt:
-                              type: string
-                              format: date-time
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Implementation pending"
 
     post:
       tags: [Flights]
       summary: Create flight booking
-      description: Create new flight booking
-      security:
-        - bearerAuth: []
+      description: |
+        **🔧 PLACEHOLDER** - Create a new flight booking
+        Currently returns placeholder response - implementation pending
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/FlightBooking"
+              type: object
+              properties:
+                flightId:
+                  type: string
+                  example: "FL123"
+                passengerCount:
+                  type: integer
+                  example: 2
+                contactInfo:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      example: "user@example.com"
+                    phone:
+                      type: string
+                      example: "+233123456789"
       responses:
         "201":
           description: Flight booking created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: "Implementation pending"
 
   /flight-bookings/{id}:
     get:
       tags: [Flights]
       summary: Get flight booking by ID
-      description: Retrieve specific flight booking
-      security:
-        - bearerAuth: []
+      description: |
+        **🔧 PLACEHOLDER** - Retrieve specific flight booking by ID
+        Currently returns placeholder response - implementation pending
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-          example: "1"
+          example: "BK123"
       responses:
         "200":
           description: Flight booking retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiResponse"
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "BK123"
+                          message:
+                            type: string
+                            example: "Implementation pending"
 
   # Blog endpoints
   /blogs:

@@ -1,53 +1,59 @@
 import * as express from "express";
+import { Response, Request } from "express";
+import { FlightsController } from "../controllers/flights.controller";
 const Router = express.Router();
 
-// Temporary endpoints for flights
-Router.get("/flight-deals", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Flight deals endpoint working",
-    data: []
-  });
-});
+// ----------------------------------------- FLIGHTS ROUTES ---------------------------------------------------
 
-Router.get("/flight-deals/:id", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Flight deal by ID endpoint working",
-    data: { id: req.params.id }
-  });
-});
+// Flight Deals Routes
+Router.get("/flight-deals", 
+    (req: Request, res: Response) => {
+        FlightsController.getFlightDeals(req, res);
+    }
+);
 
-Router.get("/flight-deals-categories", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Flight deal categories endpoint working",
-    data: []
-  });
-});
+Router.get("/flight-deals/:id", 
+    (req: Request, res: Response) => {
+        FlightsController.getFlightDealById(req, res);
+    }
+);
 
-Router.get("/flight-bookings", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Flight bookings endpoint working",
-    data: []
-  });
-});
+Router.get("/flight-deals-categories", 
+    (req: Request, res: Response) => {
+        FlightsController.getFlightDealsCategories(req, res);
+    }
+);
 
-Router.post("/flight-bookings", (req, res) => {
-  res.status(201).json({
-    success: true,
-    message: "Create flight booking endpoint working",
-    data: { bookingReference: "FL" + Date.now() }
-  });
-});
+// Flight Bookings Routes
+Router.get("/flight-bookings", 
+    (req: Request, res: Response) => {
+        FlightsController.getFlightBookings(req, res);
+    }
+);
 
-Router.get("/flight-bookings/:id", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Flight booking by ID endpoint working",
-    data: { id: req.params.id }
-  });
-});
+Router.post("/flight-bookings", 
+    (req: Request, res: Response) => {
+        FlightsController.createFlightBooking(req, res);
+    }
+);
+
+Router.get("/flight-bookings/:id", 
+    (req: Request, res: Response) => {
+        FlightsController.getFlightBookingById(req, res);
+    }
+);
+
+// Additional Flight Search Routes
+Router.get("/search-destinations", 
+    (req: Request, res: Response) => {
+        FlightsController.searchDestinations(req, res);
+    }
+);
+
+Router.get("/search-flights", 
+    (req: Request, res: Response) => {
+        FlightsController.searchFlights(req, res);
+    }
+);
 
 export default Router;
