@@ -6,7 +6,7 @@ export class FlightsController {
 
   static async getFlightDeals(req: Request, res: Response) {
     const { category } = req.query; // Optional category filter
-    
+
     const payload = {
       GolApi: {
         PassiveSessionId: "116417370",
@@ -171,7 +171,7 @@ export class FlightsController {
   static async getFlightDealById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      
+
       // TODO: Implement GOL API call for specific flight deal
       return res.status(200).json({
         status: true,
@@ -245,7 +245,7 @@ export class FlightsController {
   static async getFlightBookingById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      
+
       // TODO: Implement flight booking retrieval by ID
       return res.status(200).json({
         status: true,

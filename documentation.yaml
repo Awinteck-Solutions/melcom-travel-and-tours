@@ -1029,7 +1029,8 @@ paths:
                                               properties:
                                                 $t:
                                                   type: string
-                                                  example: "SOUTH AFRICAN AIRWAYS"
+                                                  example:
+                                                    "SOUTH AFRICAN AIRWAYS"
                                             LogoUrl:
                                               type: object
                                               properties:
@@ -1103,7 +1104,8 @@ paths:
           schema:
             type: string
           example: "Los Angeles"
-          description: Search term for airport or city (defaults to "Los Angeles")
+          description:
+            Search term for airport or city (defaults to "Los Angeles")
       responses:
         "200":
           description: Destinations retrieved successfully
@@ -1197,7 +1199,7 @@ paths:
       summary: Search flights
       description: |
         **⚠️ PARTIALLY WORKING** - Search for available flights using GOL API
-        
+
         Current Status: Endpoint communicates with GOL API but returns DTD validation errors.
         The request payload structure needs adjustment to match GOL API's expected XML schema.
       parameters:
@@ -1263,7 +1265,8 @@ paths:
                                               example: "0002"
                                             $t:
                                               type: string
-                                              example: "No valid XML document..."
+                                              example:
+                                                "No valid XML document..."
         "400":
           description: Missing required parameters
           content:
