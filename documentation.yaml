@@ -4,24 +4,31 @@ info:
   description: |
     Comprehensive travel booking and management API for Melcom Travels & Tours
 
-    ## Current Status (Updated: September 18, 2025)
+    ## Current Status (Updated: September 26, 2025)
 
     ### ✅ Fully Working Endpoints:
     - **Flight Deals**: Real GOL API integration - returns live special offers with airport/airline data
-    - **Search Destinations**: Real GOL API integration - returns airport/city search results
+    - **Search Destinations**: Real GOL API integration - returns airport/city search results  
+    - **Flexible Search**: Universal endpoint accepting any payload structure
+    - **One-Way Flight Search**: DTD compliant with passenger type transformation
+    - **Round-Trip Flight Search**: Complete multi-leg search with real pricing
+    - **Multi-City Flight Search**: Complex itinerary search with flexible inputs
     - **Flight Deal Categories**: Implementation pending placeholder
     - **Flight Bookings**: CRUD operations (placeholder implementation)
 
-    ### ⚠️ Partially Working:
-    - **Search Flights**: GOL API integration working but request payload needs DTD compliance
+    ### 🚀 Latest Updates:
+    - **Maximum Flexibility**: All flight search endpoints now accept flexible input formats
+    - **Passenger Type Transformation**: Converts common names ('adults', 'children') to GOL API codes ('ADT', 'CHD')
+    - **DTD Compliance**: All endpoints pass XML validation and return real flight data
+    - **Real Flight Results**: Live pricing, schedules, airlines, and booking details
 
     ### 🔧 In Development:
     - Blog, Countries, Static Content, Contact, Analytics modules (routes configured)
     - Protected endpoints requiring JWT authentication
 
     ### GOL API Integration:
-    Uses real GOL API (golapi.golibe.com) with proper JSON request format for flight services.
-    All flight endpoints return raw GOL API responses for maximum flexibility.
+    Uses real GOL API (golapi.golibe.com) with proper XML DTD compliance.
+    All flight endpoints return comprehensive GOL API responses with real flight data, pricing, and availability.
   version: 1.0.0
   contact:
     name: Melcom Travels Support
@@ -624,19 +631,203 @@ components:
               type: string
               example: "Travel Tips"
 
+    # Flight-related schemas
+    FlightSearchResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Flight search completed successfully"
+        data:
+          type: object
+          properties:
+            GolApi:
+              type: object
+              properties:
+                PassiveSessionId:
+                  type: string
+                  example: "116419946"
+                Settings:
+                  type: object
+                ResponseDetail:
+                  type: object
+                  properties:
+                    SearchFlightsResponse_2:
+                      type: object
+                      properties:
+                        Offers:
+                          type: object
+                          properties:
+                            Offer:
+                              type: array
+                              items:
+                                $ref: "#/components/schemas/FlightOffer"
+
+    FlightOffer:
+      type: object
+      properties:
+        FlightItinerary:
+          type: object
+          properties:
+            FlightStream:
+              type: array
+              items:
+                type: object
+                properties:
+                  FlightOption:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FlightOption"
+        PricingDetails:
+          type: object
+          properties:
+            PricingDetail:
+              type: array
+              items:
+                $ref: "#/components/schemas/PricingDetail"
+
+    FlightOption:
+      type: object
+      properties:
+        Key:
+          type: string
+          example: "FO001"
+        DepartureDateTime:
+          type: string
+          example: "2025-10-15T22:00:00"
+        ArrivalDateTime:
+          type: string
+          example: "2025-10-16T11:50:00"
+        JourneyDuration:
+          type: string
+          example: "PT20H50M"
+        FlightSegments:
+          type: object
+          properties:
+            FlightSegment:
+              type: array
+              items:
+                $ref: "#/components/schemas/FlightSegment"
+
+    FlightSegment:
+      type: object
+      properties:
+        FlightNumber:
+          type: string
+          example: "9373"
+        OriginAirport:
+          type: string
+          example: "ACC"
+        DestinationAirport:
+          type: string
+          example: "LAX"
+        DepartureDateTime:
+          type: string
+          example: "2025-10-15T22:00:00"
+        ArrivalDateTime:
+          type: string
+          example: "2025-10-16T06:45:00"
+        MarketingAirline:
+          type: string
+          example: "DL"
+        OperatingAirline:
+          type: string
+          example: "KL"
+        CabinClass:
+          type: string
+          example: "Economy"
+        PlaneType:
+          type: string
+          example: "77W"
+
+    PricingDetail:
+      type: object
+      properties:
+        Key:
+          type: string
+          example: "PD001"
+        FlightPricing:
+          type: object
+          properties:
+            FlightPrice:
+              type: object
+              properties:
+                BasePrice:
+                  type: string
+                  example: "20000.00"
+                OperatorFee:
+                  type: string
+                  example: "100.00"
+                FullPrice:
+                  type: string
+                  example: "27120.00"
+                DisplayPricePerPassenger:
+                  type: string
+                  example: "27120.00"
+
+    DestinationSearchResponse:
+      type: object
+      properties:
+        PassiveSessionId:
+          type: string
+          example: "116417370"
+        Settings:
+          type: object
+        CodeBook:
+          type: object
+          properties:
+            Airports:
+              type: object
+              properties:
+                Airport:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      Code:
+                        type: string
+                        example: "LAX"
+                      Parent:
+                        type: string
+                        example: "LAX+"
+                      Country:
+                        type: string
+                        example: "US"
+                      State:
+                        type: string
+                        example: "CA"
+                      Category:
+                        type: string
+                        example: "AIRPORT"
+                      $t:
+                        type: string
+                        example: "Los Angeles"
+
 paths:
   # ================================
-  # API STATUS SUMMARY
+  # API STATUS SUMMARY (Updated: September 26, 2025)
   # ================================
   # ✅ FULLY WORKING:
-  #   - GET /airports?search={term} - Real GOL API integration
+  #   - POST /flexible-search - Universal flight search endpoint
+  #   - POST /search-flights - Flexible flight search with passenger transformation
+  #   - POST /search-flights-oneway - One-way flight search (DTD compliant)
+  #   - POST /search-flights-roundtrip - Round-trip flight search with pricing
+  #   - POST /search-multicity-flights - Multi-city flight search
+  #   - POST /search-destinations-exact - Destination search (exact payload)
+  #   - POST /search-flights-multicity-exact - Multi-city search (exact payload)
+  #   - GET /search-destinations - Airport/city search (GOL API)
   #   - GET /flight-deals - Mock data (2 deals)
   #   - GET /flight-deals/{id} - Single deal retrieval
   #   - GET /flight-deals-categories - 4 categories
-  #   - GET /flight-status/{bookingRef} - GOL API integration
   #
-  # ⚠️  PARTIALLY WORKING:
-  #   - GET /flight-search - Responds but needs DTD format refinement
+  # 🚀 LATEST UPDATES:
+  #   - All flight search endpoints now fully working with real data
+  #   - Passenger type transformation (adults → ADT, children → CHD)
+  #   - DTD validation compliance achieved
+  #   - Flexible input formats with exact GOL API compliance
   #
   # 🔧 IN DEVELOPMENT:
   #   - Authentication endpoints (routes configured)
@@ -1194,40 +1385,60 @@ paths:
                                                   example: "true"
 
   /search-flights:
-    get:
+    post:
       tags: [Flights]
-      summary: Search flights
+      summary: Search flights (Flexible)
       description: |
-        **⚠️ PARTIALLY WORKING** - Search for available flights using GOL API
-
-        Current Status: Endpoint communicates with GOL API but returns DTD validation errors.
-        The request payload structure needs adjustment to match GOL API's expected XML schema.
-      parameters:
-        - name: origin
-          in: query
-          required: true
-          schema:
-            type: string
-          example: "ACC"
-          description: Origin airport code
-        - name: destination
-          in: query
-          required: true
-          schema:
-            type: string
-          example: "LAX"
-          description: Destination airport code
-        - name: date
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date
-          example: "2025-10-26"
-          description: Departure date (YYYY-MM-DD)
+        **✅ FULLY WORKING** - Flexible flight search with passenger type transformation
+        
+        Accepts various input formats and automatically transforms common passenger types 
+        ('adults', 'children') to GOL API codes ('ADT', 'CHD'). Returns real flight data 
+        with pricing, schedules, and booking details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                origin:
+                  type: string
+                  example: "ACC"
+                  description: Origin airport code
+                destination:
+                  type: string
+                  example: "LAX"
+                  description: Destination airport code
+                departureDate:
+                  type: string
+                  format: date
+                  example: "2025-10-15"
+                  description: Departure date (YYYY-MM-DD)
+                passengers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: "adults"
+                        description: Passenger type (adults, children, infants)
+                      count:
+                        type: number
+                        example: 1
+                        description: Number of passengers
+                clientId:
+                  type: string
+                  example: "melcom.golibe.com"
+                  description: GOL API client ID
+                password:
+                  type: string
+                  example: "jd532aeeA4bc"
+                  description: GOL API password
+              required: [origin, destination, departureDate, passengers, clientId, password]
       responses:
         "200":
-          description: Flight search response (may contain validation errors)
+          description: Flight search successful - returns real flight data
           content:
             application/json:
               schema:
@@ -1243,30 +1454,94 @@ paths:
                             properties:
                               PassiveSessionId:
                                 type: string
-                                example: "123456789"
+                                example: "116419946"
                               Settings:
                                 type: object
                               ResponseDetail:
                                 type: object
                                 properties:
-                                  SystemRequestError_1:
+                                  SearchFlightsResponse_2:
                                     type: object
                                     properties:
-                                      Error:
-                                        type: array
-                                        items:
-                                          type: object
-                                          properties:
-                                            Type:
-                                              type: string
-                                              example: "incorrect"
-                                            Code:
-                                              type: string
-                                              example: "0002"
-                                            $t:
-                                              type: string
-                                              example:
-                                                "No valid XML document..."
+                                      Offers:
+                                        type: object
+                                        properties:
+                                          Offer:
+                                            type: array
+                                            items:
+                                              type: object
+                                              properties:
+                                                FlightItinerary:
+                                                  type: object
+                                                  properties:
+                                                    FlightStream:
+                                                      type: array
+                                                      items:
+                                                        type: object
+                                                        properties:
+                                                          FlightOption:
+                                                            type: array
+                                                            items:
+                                                              type: object
+                                                              properties:
+                                                                Key:
+                                                                  type: string
+                                                                  example: "FO001"
+                                                                DepartureDateTime:
+                                                                  type: string
+                                                                  example: "2025-10-15T22:00:00"
+                                                                ArrivalDateTime:
+                                                                  type: string
+                                                                  example: "2025-10-16T11:50:00"
+                                                                JourneyDuration:
+                                                                  type: string
+                                                                  example: "PT20H50M"
+                                                                FlightSegments:
+                                                                  type: object
+                                                                  properties:
+                                                                    FlightSegment:
+                                                                      type: array
+                                                                      items:
+                                                                        type: object
+                                                                        properties:
+                                                                          FlightNumber:
+                                                                            type: string
+                                                                            example: "9373"
+                                                                          OriginAirport:
+                                                                            type: string
+                                                                            example: "ACC"
+                                                                          DestinationAirport:
+                                                                            type: string
+                                                                            example: "LAX"
+                                                                          MarketingAirline:
+                                                                            type: string
+                                                                            example: "DL"
+                                                                          CabinClass:
+                                                                            type: string
+                                                                            example: "Economy"
+                                                PricingDetails:
+                                                  type: object
+                                                  properties:
+                                                    PricingDetail:
+                                                      type: array
+                                                      items:
+                                                        type: object
+                                                        properties:
+                                                          Key:
+                                                            type: string
+                                                            example: "PD001"
+                                                          FlightPricing:
+                                                            type: object
+                                                            properties:
+                                                              FlightPrice:
+                                                                type: object
+                                                                properties:
+                                                                  FullPrice:
+                                                                    type: string
+                                                                    example: "27120.00"
+                                                                  DisplayPricePerPassenger:
+                                                                    type: string
+                                                                    example: "27120.00"
         "400":
           description: Missing required parameters
           content:
@@ -1279,7 +1554,274 @@ paths:
                       status:
                         example: false
                       message:
-                        example: "Origin, destination, and date are required"
+                        example: "Origin, destination, departureDate, passengers, clientId, and password are required"
+
+  /flexible-search:
+    post:
+      tags: [Flights]
+      summary: Flexible Search (Universal)
+      description: |
+        **✅ FULLY WORKING** - Universal flight search endpoint
+        
+        Accepts any payload structure and forwards directly to GOL API.
+        Perfect for testing different request formats or advanced use cases.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Any valid GOL API request structure
+      responses:
+        "200":
+          description: Direct GOL API response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /search-flights-oneway:
+    post:
+      tags: [Flights]
+      summary: One-Way Flight Search
+      description: |
+        **✅ FULLY WORKING** - One-way flight search with passenger type transformation
+        
+        Optimized for single-direction flights with flexible passenger inputs.
+        Automatically converts passenger types and ensures DTD compliance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                origin:
+                  type: string
+                  example: "ACC"
+                destination:
+                  type: string
+                  example: "LAX"
+                departureDate:
+                  type: string
+                  format: date
+                  example: "2025-10-15"
+                passengers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: "adults"
+                      count:
+                        type: number
+                        example: 1
+                clientId:
+                  type: string
+                  example: "melcom.golibe.com"
+                password:
+                  type: string
+                  example: "jd532aeeA4bc"
+              required: [origin, destination, departureDate, passengers, clientId, password]
+      responses:
+        "200":
+          description: One-way flight search results with pricing and availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightSearchResponse"
+
+  /search-flights-roundtrip:
+    post:
+      tags: [Flights]
+      summary: Round-Trip Flight Search
+      description: |
+        **✅ FULLY WORKING** - Round-trip flight search with complete pricing
+        
+        Searches outbound and return flights simultaneously with real pricing.
+        Returns comprehensive flight combinations and fare details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                origin:
+                  type: string
+                  example: "ACC"
+                destination:
+                  type: string
+                  example: "LAX"
+                departureDate:
+                  type: string
+                  format: date
+                  example: "2025-10-15"
+                returnDate:
+                  type: string
+                  format: date
+                  example: "2025-10-25"
+                passengers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: "adults"
+                      count:
+                        type: number
+                        example: 1
+                clientId:
+                  type: string
+                  example: "melcom.golibe.com"
+                password:
+                  type: string
+                  example: "jd532aeeA4bc"
+              required: [origin, destination, departureDate, returnDate, passengers, clientId, password]
+      responses:
+        "200":
+          description: Round-trip flight search results with outbound and return options
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightSearchResponse"
+
+  /search-multicity-flights:
+    post:
+      tags: [Flights]
+      summary: Multi-City Flight Search
+      description: |
+        **✅ FULLY WORKING** - Multi-city flight search for complex itineraries
+        
+        Handles complex multi-destination journeys with flexible passenger types.
+        Perfect for business trips or vacation tours with multiple stops.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                journeys:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      origin:
+                        type: string
+                        example: "ACC"
+                      destination:
+                        type: string
+                        example: "LAX+"
+                      departureDate:
+                        type: string
+                        format: date
+                        example: "2025-10-15"
+                  example:
+                    - origin: "ACC"
+                      destination: "LAX+"
+                      departureDate: "2025-10-15"
+                    - origin: "LAX+"
+                      destination: "LHR"
+                      departureDate: "2025-10-25"
+                    - origin: "LHR"
+                      destination: "ACC"
+                      departureDate: "2025-11-05"
+                passengers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        example: "adults"
+                      count:
+                        type: number
+                        example: 1
+                clientId:
+                  type: string
+                  example: "melcom.golibe.com"
+                password:
+                  type: string
+                  example: "jd532aeeA4bc"
+              required: [journeys, passengers, clientId, password]
+      responses:
+        "200":
+          description: Multi-city flight search results with all journey segments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightSearchResponse"
+
+  /search-destinations-exact:
+    post:
+      tags: [Flights]
+      summary: Search Destinations (Exact Payload)
+      description: |
+        **✅ FULLY WORKING** - Destination search using exact GOL API structure
+        
+        Direct destination search with precise payload formatting.
+        Returns comprehensive airport and city information.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                clientId:
+                  type: string
+                  example: "melcom.golibe.com"
+                password:
+                  type: string
+                  example: "jd532aeeA4bc"
+                searchTerm:
+                  type: string
+                  example: "Los Angeles"
+              required: [clientId, password, searchTerm]
+      responses:
+        "200":
+          description: Destination search results
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          GolApi:
+                            $ref: "#/components/schemas/DestinationSearchResponse"
+
+  /search-flights-multicity-exact:
+    post:
+      tags: [Flights]
+      summary: Multi-City Search (Exact Payload)
+      description: |
+        **✅ FULLY WORKING** - Multi-city search using exact GOL API structure
+        
+        Advanced multi-city search with precise payload structure for complex routing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: Exact GOL API multi-city request structure
+      responses:
+        "200":
+          description: Multi-city flight results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlightSearchResponse"
 
   /flight-deals/{id}:
     get:

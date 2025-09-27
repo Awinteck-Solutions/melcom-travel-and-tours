@@ -36,8 +36,39 @@ Router.get("/search-destinations", (req: Request, res: Response) => {
   FlightsController.searchDestinations(req, res);
 });
 
-Router.get("/search-flights", (req: Request, res: Response) => {
+Router.post("/search-flights", (req: Request, res: Response) => {
   FlightsController.searchFlights(req, res);
+});
+
+Router.post("/search-multicity-flights", (req: Request, res: Response) => {
+  FlightsController.searchMultiCityFlights(req, res);
+});
+
+// Flexible search endpoint - accepts any GOL API structure
+Router.post("/flexible-search", (req: Request, res: Response) => {
+  FlightsController.flexibleSearch(req, res);
+});
+
+// 🔹 EXACT PAYLOAD STRUCTURE ROUTES - Based on provided examples
+
+// Destination search using exact payload structure
+Router.post("/search-destinations-exact", (req: Request, res: Response) => {
+  FlightsController.searchDestinationsExact(req, res);
+});
+
+// One-way flight search using exact payload structure
+Router.post("/search-flights-oneway", (req: Request, res: Response) => {
+  FlightsController.searchFlightsOneWay(req, res);
+});
+
+// Round-trip flight search using exact payload structure
+Router.post("/search-flights-roundtrip", (req: Request, res: Response) => {
+  FlightsController.searchFlightsRoundTrip(req, res);
+});
+
+// Multi-city flight search
+Router.post("/search-flights-multicity-exact", (req: Request, res: Response) => {
+  FlightsController.searchFlightsMultiCity(req, res);
 });
 
 export default Router;
