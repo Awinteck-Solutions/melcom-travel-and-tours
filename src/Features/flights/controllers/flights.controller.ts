@@ -1,23 +1,23 @@
 import { Request, Response } from "express";
 import axios from "axios";
-import { 
-  SearchFlightsRequestDto, 
-  SearchDestinationsRequestDto, 
-  FlightDealsRequestDto, 
-  MultiCityFlightRequestDto, 
+import {
+  SearchFlightsRequestDto,
+  SearchDestinationsRequestDto,
+  FlightDealsRequestDto,
+  MultiCityFlightRequestDto,
   FlightBookingRequestDto,
   FlexibleGolApiRequestDto,
-  FlexibleFlightSearchDto
+  FlexibleFlightSearchDto,
 } from "../dto/flights.dto";
 import { FlightType } from "../enums/flights.enum";
 
 export class FlightsController {
   private static readonly apiUrl = `${process.env.GOL_API_BASE_URL}/json.php`;
 
-    // Helper method to create base GOL API structure with maximum flexibility
+  // Helper method to create base GOL API structure with maximum flexibility
   private static createBaseGolApiPayload(
-    language: string = "en", 
-    country: string = "CZ", 
+    language: string = "en",
+    country: string = "CZ",
     currency: string = "GHS",
     passiveSessionId: string = "116417370"
   ): any {
@@ -50,7 +50,7 @@ export class FlightsController {
         currency = "GHS",
         passiveSessionId,
         requestDetail,
-        searchType = "destinations" // destinations, flights, deals, etc.
+        searchType = "destinations", // destinations, flights, deals, etc.
       } = req.body;
 
       const payload = this.createBaseGolApiPayload(
@@ -79,7 +79,9 @@ export class FlightsController {
           case "flights":
             payload.GolApi.RequestDetail = {
               SearchFlightsRequest_1: {
-                Travelers: req.body.travelers || [{ Code: "ADT", Quantity: "1" }],
+                Travelers: req.body.travelers || [
+                  { Code: "ADT", Quantity: "1" },
+                ],
                 TripType: req.body.tripType || "ONEWAY",
                 TripRequests: req.body.tripRequests || [],
                 CabinType: req.body.cabinType || "ECO",
@@ -101,7 +103,8 @@ export class FlightsController {
           default:
             return res.status(400).json({
               status: false,
-              message: "Invalid search type. Use 'destinations', 'flights', or 'deals', or provide custom requestDetail.",
+              message:
+                "Invalid search type. Use 'destinations', 'flights', or 'deals', or provide custom requestDetail.",
             });
         }
       }
@@ -113,7 +116,9 @@ export class FlightsController {
 
         return res.status(200).json({
           status: true,
-          message: `${searchType.charAt(0).toUpperCase() + searchType.slice(1)} search completed successfully`,
+          message: `${
+            searchType.charAt(0).toUpperCase() + searchType.slice(1)
+          } search completed successfully`,
           data: response.data,
           requestPayload: payload, // Include the payload for debugging/transparency
         });
@@ -144,7 +149,7 @@ export class FlightsController {
         searchType = "flight",
         passiveSessionId = "116417370",
         clientId = "melcom.golibe.com",
-        password = "jd532aeeA4bc"
+        password = "jd532aeeA4bc",
       } = req.body;
 
       // Your exact payload structure
@@ -202,12 +207,12 @@ export class FlightsController {
     }
   }
 
-  // POST /search-flights-oneway - Uses your exact structure for one-way flight search  
+  // POST /search-flights-oneway - Uses your exact structure for one-way flight search
   static async searchFlightsOneWay(req: Request, res: Response) {
     try {
       const {
         origin,
-        destination, 
+        destination,
         departureDate,
         travelers = [{ Code: "ADT", Quantity: "1" }],
         cabinType = "ECO",
@@ -216,7 +221,7 @@ export class FlightsController {
         currency = "GHS",
         passiveSessionId = "116417370",
         clientId = "melcom.golibe.com",
-        password = "jd532aeeA4bc"
+        password = "jd532aeeA4bc",
       } = req.body;
 
       const payload = {
@@ -246,7 +251,7 @@ export class FlightsController {
                 ],
               },
               SearchedPassengers: {
-                SearchedPassenger: travelers.map(traveler => ({
+                SearchedPassenger: travelers.map((traveler) => ({
                   Code: traveler.Code,
                 })),
               },
@@ -297,11 +302,11 @@ export class FlightsController {
         travelers = [{ Code: "ADT", Quantity: "1" }],
         cabinType = "ECO",
         language = "en",
-        country = "CZ", 
+        country = "CZ",
         currency = "GHS",
         passiveSessionId = "116417370",
         clientId = "melcom.golibe.com",
-        password = "jd532aeeA4bc"
+        password = "jd532aeeA4bc",
       } = req.body;
 
       const payload = {
@@ -336,12 +341,12 @@ export class FlightsController {
                 ],
               },
               SearchedPassengers: {
-                SearchedPassenger: travelers.map(traveler => ({
-                  Code: traveler.Code
+                SearchedPassenger: travelers.map((traveler) => ({
+                  Code: traveler.Code,
                 })),
               },
               FlightPreferences: {
-                IncludeCombinedFlights: {}
+                IncludeCombinedFlights: {},
               },
             },
           },
@@ -388,7 +393,7 @@ export class FlightsController {
         currency = "GHS",
         passiveSessionId = "116417370",
         clientId = "melcom.golibe.com",
-        password = "jd532aeeA4bc"
+        password = "jd532aeeA4bc",
       } = req.body;
 
       if (!tripRequests || tripRequests.length < 2) {
@@ -419,7 +424,7 @@ export class FlightsController {
                 FlightStep: tripRequests,
               },
               SearchedPassengers: {
-                SearchedPassenger: travelers.map(traveler => ({
+                SearchedPassenger: travelers.map((traveler) => ({
                   Code: traveler.Code,
                   Quantity: traveler.Quantity,
                 })),
@@ -473,8 +478,8 @@ export class FlightsController {
       });
 
       const payload = this.createBaseGolApiPayload(
-        dealsRequest.language, 
-        dealsRequest.country, 
+        dealsRequest.language,
+        dealsRequest.country,
         dealsRequest.currency
       );
 
@@ -527,7 +532,7 @@ export class FlightsController {
       });
 
       const payload = this.createBaseGolApiPayload(
-        searchRequest.language, 
+        searchRequest.language,
         searchRequest.country
       );
 
@@ -572,7 +577,7 @@ export class FlightsController {
       const searchRequest = new SearchFlightsRequestDto(req.body);
 
       // Transform passenger info from DTO to GOL API format
-      const travelers = searchRequest.passengers.map(passenger => ({
+      const travelers = searchRequest.passengers.map((passenger) => ({
         Code: passenger.type,
         Quantity: passenger.count.toString(),
       }));
@@ -610,7 +615,7 @@ export class FlightsController {
             FlightStep: tripRequests,
           },
           SearchedPassengers: {
-            SearchedPassenger: travelers.map(traveler => ({
+            SearchedPassenger: travelers.map((traveler) => ({
               Code: traveler.Code,
               Quantity: traveler.Quantity,
             })),
@@ -709,7 +714,7 @@ export class FlightsController {
       const bookingRequest = new FlightBookingRequestDto(req.body);
 
       // Transform passengers to GOL API format
-      const travelers = bookingRequest.passengers.map(passenger => ({
+      const travelers = bookingRequest.passengers.map((passenger) => ({
         Code: passenger.type,
         PassengerType: passenger.type,
         Title: passenger.title,
@@ -723,7 +728,11 @@ export class FlightsController {
         Phone: passenger.phone,
       }));
 
-      const payload = this.createBaseGolApiPayload("en", "GH", bookingRequest.currency);
+      const payload = this.createBaseGolApiPayload(
+        "en",
+        "GH",
+        bookingRequest.currency
+      );
 
       payload.GolApi.RequestDetail = {
         CreateBookingRequest_1: {
@@ -792,19 +801,19 @@ export class FlightsController {
       // Transform passenger info from DTO to GOL API format with proper code mapping
       const transformPassengerType = (type: string): string => {
         const typeMap: { [key: string]: string } = {
-          'adults': 'ADT',
-          'adult': 'ADT',
-          'children': 'CHD',
-          'child': 'CHD',
-          'infants': 'INF',
-          'infant': 'INF',
-          'youth': 'YTH',
-          'senior': 'YCD',
+          adults: "ADT",
+          adult: "ADT",
+          children: "CHD",
+          child: "CHD",
+          infants: "INF",
+          infant: "INF",
+          youth: "YTH",
+          senior: "YCD",
         };
         return typeMap[type.toLowerCase()] || type.toUpperCase();
       };
 
-      const travelers = multiCityRequest.passengers.map(passenger => ({
+      const travelers = multiCityRequest.passengers.map((passenger) => ({
         Code: transformPassengerType(passenger.type),
         Quantity: passenger.count.toString(),
       }));

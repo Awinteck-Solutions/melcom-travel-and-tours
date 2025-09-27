@@ -1,11 +1,11 @@
-import { 
-  FlightType, 
-  CabinClass, 
-  PassengerType, 
-  Currency, 
-  Language, 
-  CountryCode, 
-  AirportCategory, 
+import {
+  FlightType,
+  CabinClass,
+  PassengerType,
+  Currency,
+  Language,
+  CountryCode,
+  AirportCategory,
   SearchType,
   DefaultAirport,
   DefaultCountry,
@@ -16,8 +16,8 @@ import {
   SeatPreference,
   FlightDealCategory,
   FlightStatus,
-  Airlines
-} from '../enums/flights.enum';
+  Airlines,
+} from "../enums/flights.enum";
 
 // Flexible GOL API Request DTO - can handle any GOL API request structure
 export class FlexibleGolApiRequestDto {
@@ -68,23 +68,23 @@ export class FlexibleFlightSearchDto {
   // Destination search parameters
   searchQuery?: string;
   searchType?: SearchType;
-  
+
   // Flight search parameters
   origin?: string;
   destination?: string;
   departureDate?: string;
   returnDate?: string;
-  
+
   // Flight preferences
   flightType?: FlightType;
   cabinClass?: CabinClass;
   passengers?: PassengerInfo[];
-  
+
   // Localization
   language?: string;
   country?: string;
   currency?: string;
-  
+
   // API credentials (optional overrides)
   passiveSessionId?: string;
   clientId?: string;
@@ -94,7 +94,7 @@ export class FlexibleFlightSearchDto {
     // Destination search
     this.searchQuery = data.searchQuery || data.query;
     this.searchType = data.searchType || SearchType.FLIGHT;
-    
+
     // Flight search
     this.origin = data.origin;
     this.destination = data.destination;
@@ -102,13 +102,15 @@ export class FlexibleFlightSearchDto {
     this.returnDate = data.returnDate;
     this.flightType = data.flightType || FlightType.ONE_WAY;
     this.cabinClass = data.cabinClass || CabinClass.ECO;
-    this.passengers = data.passengers || [{ type: PassengerType.ADT, count: 1 }];
-    
+    this.passengers = data.passengers || [
+      { type: PassengerType.ADT, count: 1 },
+    ];
+
     // Localization
     this.language = data.language || "en";
     this.country = data.country || "CZ";
     this.currency = data.currency || "GHS";
-    
+
     // API credentials
     this.passiveSessionId = data.passiveSessionId || "116417370";
     this.clientId = data.clientId || process.env.GOL_API_CLIENT_ID;
@@ -137,10 +139,11 @@ export class FlexibleFlightSearchDto {
 
   // Create flight search payload
   createFlightSearchPayload(): any {
-    const travelers = this.passengers?.map(passenger => ({
-      Code: passenger.type,
-      Quantity: passenger.count.toString(),
-    })) || [];
+    const travelers =
+      this.passengers?.map((passenger) => ({
+        Code: passenger.type,
+        Quantity: passenger.count.toString(),
+      })) || [];
 
     const tripRequests = [
       {
@@ -217,21 +220,21 @@ export class SearchFlightsRequestDto {
   destination: string;
   departureDate: string;
   returnDate?: string;
-  
+
   // Flight type and preferences
   flightType: FlightType;
   cabinClass: CabinClass;
   directFlightsOnly: boolean;
   toleranceDays: ToleranceDays;
-  
+
   // Passenger information
   passengers: PassengerInfo[];
-  
+
   // Localization
   language: Language;
   country: CountryCode;
   currency: Currency;
-  
+
   // Optional filters
   preferredAirlines?: string[];
   maxStops?: number;
@@ -243,21 +246,23 @@ export class SearchFlightsRequestDto {
     this.destination = data.destination;
     this.departureDate = data.departureDate;
     this.returnDate = data.returnDate;
-    
+
     // Flight preferences
     this.flightType = data.flightType || FlightType.ONE_WAY;
     this.cabinClass = data.cabinClass || CabinClass.ECO;
     this.directFlightsOnly = data.directFlightsOnly || false;
     this.toleranceDays = data.toleranceDays || ToleranceDays.NONE;
-    
+
     // Passengers
-    this.passengers = data.passengers || [{ type: PassengerType.ADT, count: 1 }];
-    
+    this.passengers = data.passengers || [
+      { type: PassengerType.ADT, count: 1 },
+    ];
+
     // Localization
     this.language = data.language || Language.ENGLISH;
     this.country = data.country || CountryCode.GHANA;
     this.currency = data.currency || Currency.GHS;
-    
+
     // Optional filters
     this.preferredAirlines = data.preferredAirlines;
     this.maxStops = data.maxStops;
@@ -286,8 +291,12 @@ export class MultiCityFlightRequestDto {
   currency: Currency;
 
   constructor(data: any) {
-    this.journeys = data.journeys.map((journey: any) => new FlightJourneyDto(journey));
-    this.passengers = data.passengers || [{ type: PassengerType.ADT, count: 1 }];
+    this.journeys = data.journeys.map(
+      (journey: any) => new FlightJourneyDto(journey)
+    );
+    this.passengers = data.passengers || [
+      { type: PassengerType.ADT, count: 1 },
+    ];
     this.cabinClass = data.cabinClass || CabinClass.ECO;
     this.language = data.language || Language.ENGLISH;
     this.country = data.country || CountryCode.GHANA;
@@ -319,7 +328,7 @@ export class GolApiFlightDealResponse {
   dateTo: string;
   price: string;
   currency: Currency;
-  
+
   // Enriched data from CodeBook
   originName?: string;
   destinationName?: string;
@@ -331,21 +340,30 @@ export class GolApiFlightDealResponse {
     this.type = deal.Type;
     this.marketingAirline = deal.MarketingAirline;
     this.origin = deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Origin;
-    this.destination = deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Destination;
-    this.dateFrom = deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange?.DateFrom;
-    this.dateTo = deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange?.DateTo;
+    this.destination =
+      deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Destination;
+    this.dateFrom =
+      deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange?.DateFrom;
+    this.dateTo =
+      deal.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange?.DateTo;
     this.price = deal.SummaryPrice?.FullPrice;
     this.currency = Currency.GHS;
-    
+
     // Enrich with CodeBook data if available
     if (codeBook) {
       const airports = codeBook.Airports?.Airport || [];
       const airlines = codeBook.TransportCompanies?.TransportCompany || [];
-      
-      const originAirport = airports.find((apt: any) => apt.Code === this.origin);
-      const destinationAirport = airports.find((apt: any) => apt.Code === this.destination);
-      const airline = airlines.find((arl: any) => arl.Code === this.marketingAirline);
-      
+
+      const originAirport = airports.find(
+        (apt: any) => apt.Code === this.origin
+      );
+      const destinationAirport = airports.find(
+        (apt: any) => apt.Code === this.destination
+      );
+      const airline = airlines.find(
+        (arl: any) => arl.Code === this.marketingAirline
+      );
+
       this.originName = originAirport?.$t;
       this.destinationName = destinationAirport?.$t;
       this.airlineName = airline?.Name?.$t;
@@ -367,12 +385,12 @@ export class GolApiDestinationResponse {
   constructor(destination: any, airport: any) {
     this.code = destination.Destination;
     this.parent = destination.Parent;
-    this.showCode = destination.ShowCode === 'true';
-    
+    this.showCode = destination.ShowCode === "true";
+
     // Get details from airport CodeBook
     this.name = airport?.$t || destination.Destination;
-    this.country = airport?.Country || '';
-    this.state = airport?.State || '';
+    this.country = airport?.Country || "";
+    this.state = airport?.State || "";
     this.category = airport?.Category || AirportCategory.AIRPORT;
   }
 }
@@ -382,32 +400,38 @@ export class FlightBookingRequestDto {
   // Flight details
   flightOfferId: string;
   flightType: FlightType;
-  
+
   // Passenger details
   passengers: PassengerDetailsDto[];
-  
+
   // Contact information
   contactEmail: string;
   contactPhone: string;
-  
+
   // Preferences
   seatPreferences?: SeatPreferenceDto[];
   mealPreferences?: MealPreferenceDto[];
-  
+
   // Special requests
   specialRequests?: string;
-  
+
   // Payment preference
   currency: Currency;
 
   constructor(data: any) {
     this.flightOfferId = data.flightOfferId;
     this.flightType = data.flightType;
-    this.passengers = data.passengers.map((p: any) => new PassengerDetailsDto(p));
+    this.passengers = data.passengers.map(
+      (p: any) => new PassengerDetailsDto(p)
+    );
     this.contactEmail = data.contactEmail;
     this.contactPhone = data.contactPhone;
-    this.seatPreferences = data.seatPreferences?.map((s: any) => new SeatPreferenceDto(s));
-    this.mealPreferences = data.mealPreferences?.map((m: any) => new MealPreferenceDto(m));
+    this.seatPreferences = data.seatPreferences?.map(
+      (s: any) => new SeatPreferenceDto(s)
+    );
+    this.mealPreferences = data.mealPreferences?.map(
+      (m: any) => new MealPreferenceDto(m)
+    );
     this.specialRequests = data.specialRequests;
     this.currency = data.currency || Currency.GHS;
   }
@@ -487,7 +511,9 @@ export class FlightBookingResponseDto {
     this.totalAmount = data.totalAmount;
     this.currency = data.currency;
     this.flightDetails = new BookedFlightDetailsDto(data.flightDetails);
-    this.passengers = data.passengers.map((p: any) => new PassengerDetailsDto(p));
+    this.passengers = data.passengers.map(
+      (p: any) => new PassengerDetailsDto(p)
+    );
     this.paymentDueDate = data.paymentDueDate;
     this.createdAt = data.createdAt;
   }

@@ -1390,7 +1390,7 @@ paths:
       summary: Search flights (Flexible)
       description: |
         **✅ FULLY WORKING** - Flexible flight search with passenger type transformation
-        
+
         Accepts various input formats and automatically transforms common passenger types 
         ('adults', 'children') to GOL API codes ('ADT', 'CHD'). Returns real flight data 
         with pricing, schedules, and booking details.
@@ -1435,7 +1435,15 @@ paths:
                   type: string
                   example: "jd532aeeA4bc"
                   description: GOL API password
-              required: [origin, destination, departureDate, passengers, clientId, password]
+              required:
+                [
+                  origin,
+                  destination,
+                  departureDate,
+                  passengers,
+                  clientId,
+                  password,
+                ]
       responses:
         "200":
           description: Flight search successful - returns real flight data
@@ -1554,7 +1562,9 @@ paths:
                       status:
                         example: false
                       message:
-                        example: "Origin, destination, departureDate, passengers, clientId, and password are required"
+                        example:
+                          "Origin, destination, departureDate, passengers,
+                          clientId, and password are required"
 
   /flexible-search:
     post:
@@ -1562,7 +1572,7 @@ paths:
       summary: Flexible Search (Universal)
       description: |
         **✅ FULLY WORKING** - Universal flight search endpoint
-        
+
         Accepts any payload structure and forwards directly to GOL API.
         Perfect for testing different request formats or advanced use cases.
       requestBody:
@@ -1588,7 +1598,7 @@ paths:
       summary: One-Way Flight Search
       description: |
         **✅ FULLY WORKING** - One-way flight search with passenger type transformation
-        
+
         Optimized for single-direction flights with flexible passenger inputs.
         Automatically converts passenger types and ensures DTD compliance.
       requestBody:
@@ -1625,10 +1635,19 @@ paths:
                 password:
                   type: string
                   example: "jd532aeeA4bc"
-              required: [origin, destination, departureDate, passengers, clientId, password]
+              required:
+                [
+                  origin,
+                  destination,
+                  departureDate,
+                  passengers,
+                  clientId,
+                  password,
+                ]
       responses:
         "200":
-          description: One-way flight search results with pricing and availability
+          description:
+            One-way flight search results with pricing and availability
           content:
             application/json:
               schema:
@@ -1640,7 +1659,7 @@ paths:
       summary: Round-Trip Flight Search
       description: |
         **✅ FULLY WORKING** - Round-trip flight search with complete pricing
-        
+
         Searches outbound and return flights simultaneously with real pricing.
         Returns comprehensive flight combinations and fare details.
       requestBody:
@@ -1681,10 +1700,20 @@ paths:
                 password:
                   type: string
                   example: "jd532aeeA4bc"
-              required: [origin, destination, departureDate, returnDate, passengers, clientId, password]
+              required:
+                [
+                  origin,
+                  destination,
+                  departureDate,
+                  returnDate,
+                  passengers,
+                  clientId,
+                  password,
+                ]
       responses:
         "200":
-          description: Round-trip flight search results with outbound and return options
+          description:
+            Round-trip flight search results with outbound and return options
           content:
             application/json:
               schema:
@@ -1696,7 +1725,7 @@ paths:
       summary: Multi-City Flight Search
       description: |
         **✅ FULLY WORKING** - Multi-city flight search for complex itineraries
-        
+
         Handles complex multi-destination journeys with flexible passenger types.
         Perfect for business trips or vacation tours with multiple stops.
       requestBody:
@@ -1751,7 +1780,8 @@ paths:
               required: [journeys, passengers, clientId, password]
       responses:
         "200":
-          description: Multi-city flight search results with all journey segments
+          description:
+            Multi-city flight search results with all journey segments
           content:
             application/json:
               schema:
@@ -1763,7 +1793,7 @@ paths:
       summary: Search Destinations (Exact Payload)
       description: |
         **✅ FULLY WORKING** - Destination search using exact GOL API structure
-        
+
         Direct destination search with precise payload formatting.
         Returns comprehensive airport and city information.
       requestBody:
@@ -1805,7 +1835,7 @@ paths:
       summary: Multi-City Search (Exact Payload)
       description: |
         **✅ FULLY WORKING** - Multi-city search using exact GOL API structure
-        
+
         Advanced multi-city search with precise payload structure for complex routing.
       requestBody:
         required: true

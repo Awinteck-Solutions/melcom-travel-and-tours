@@ -67,8 +67,11 @@ Router.post("/search-flights-roundtrip", (req: Request, res: Response) => {
 });
 
 // Multi-city flight search
-Router.post("/search-flights-multicity-exact", (req: Request, res: Response) => {
-  FlightsController.searchFlightsMultiCity(req, res);
-});
+Router.post(
+  "/search-flights-multicity-exact",
+  (req: Request, res: Response) => {
+    FlightsController.searchFlightsMultiCity(req, res);
+  }
+);
 
 export default Router;

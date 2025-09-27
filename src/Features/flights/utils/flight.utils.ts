@@ -1,21 +1,20 @@
-import { 
-  FlightType, 
-  CabinClass, 
-  PassengerType, 
-  Currency, 
-  Language, 
+import {
+  FlightType,
+  CabinClass,
+  PassengerType,
+  Currency,
+  Language,
   CountryCode,
   ToleranceDays,
   WestAfricanAirports,
   InternationalAirports,
-  Airlines
-} from '../enums/flights.enum';
+  Airlines,
+} from "../enums/flights.enum";
 
 /**
  * Validation utilities for flight-related data
  */
 export class FlightValidationUtils {
-  
   /**
    * Validate airport code format (3 letters)
    */
@@ -69,7 +68,7 @@ export class FlightValidationUtils {
   static getAllAirportCodes(): string[] {
     return [
       ...Object.values(WestAfricanAirports),
-      ...Object.values(InternationalAirports)
+      ...Object.values(InternationalAirports),
     ];
   }
 
@@ -128,12 +127,12 @@ export class FlightValidationUtils {
    */
   static formatPrice(amount: number, currency: Currency): string {
     const symbols = {
-      [Currency.GHS]: '₵',
-      [Currency.USD]: '$',
-      [Currency.EUR]: '€',
-      [Currency.GBP]: '£'
+      [Currency.GHS]: "₵",
+      [Currency.USD]: "$",
+      [Currency.EUR]: "€",
+      [Currency.GBP]: "£",
     };
-    
+
     return `${symbols[currency]}${amount.toLocaleString()}`;
   }
 
@@ -145,11 +144,14 @@ export class FlightValidationUtils {
     const birth = new Date(dateOfBirth);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
-    
+
     return age;
   }
 
@@ -175,7 +177,7 @@ export class FlightValidationUtils {
   static formatDuration(minutes: number): string {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
+
     if (hours === 0) return `${mins}m`;
     if (mins === 0) return `${hours}h`;
     return `${hours}h ${mins}m`;
@@ -187,19 +189,19 @@ export class FlightValidationUtils {
   static parseDurationToMinutes(duration: string): number {
     const regex = /(?:(\d+)h)?\s*(?:(\d+)m)?/;
     const match = duration.match(regex);
-    
+
     if (!match) return 0;
-    
-    const hours = parseInt(match[1] || '0', 10);
-    const minutes = parseInt(match[2] || '0', 10);
-    
+
+    const hours = parseInt(match[1] || "0", 10);
+    const minutes = parseInt(match[2] || "0", 10);
+
     return hours * 60 + minutes;
   }
 
   /**
    * Generate booking reference
    */
-  static generateBookingReference(prefix: string = 'MC'): string {
+  static generateBookingReference(prefix: string = "MC"): string {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `${prefix}${timestamp}${random}`;
@@ -221,7 +223,7 @@ export class FlightValidationUtils {
     const expiry = new Date(expiryDate);
     const sixMonthsFromNow = new Date();
     sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    
+
     return expiry > sixMonthsFromNow;
   }
 }
@@ -230,11 +232,13 @@ export class FlightValidationUtils {
  * GOL API payload builders
  */
 export class GolApiPayloadBuilder {
-  
   /**
    * Build basic GOL API structure
    */
-  static buildBasePayload(language: Language = Language.ENGLISH, country: CountryCode = CountryCode.CZECH_REPUBLIC): any {
+  static buildBasePayload(
+    language: Language = Language.ENGLISH,
+    country: CountryCode = CountryCode.CZECH_REPUBLIC
+  ): any {
     return {
       GolApi: {
         PassiveSessionId: "116417370",
@@ -258,8 +262,11 @@ export class GolApiPayloadBuilder {
    * Build flight search payload
    */
   static buildFlightSearchPayload(searchRequest: any): any {
-    const basePayload = this.buildBasePayload(searchRequest.language, searchRequest.country);
-    
+    const basePayload = this.buildBasePayload(
+      searchRequest.language,
+      searchRequest.country
+    );
+
     // Build passengers array for GOL API
     const passengers = searchRequest.passengers.map((p: any) => ({
       Code: p.type,
@@ -284,23 +291,28 @@ export class GolApiPayloadBuilder {
           IncludeCombinedFlights: {},
           // Add direct flights filter if specified
           ...(searchRequest.directFlightsOnly && {
-            MaxStops: "0"
+            MaxStops: "0",
           }),
           // Add cabin class preference
           ...(searchRequest.cabinClass && {
-            CabinClass: searchRequest.cabinClass.toUpperCase()
+            CabinClass: searchRequest.cabinClass.toUpperCase(),
           }),
         },
       },
     };
 
     // Add return flight if specified
-    if (searchRequest.flightType === FlightType.RETURN && searchRequest.returnDate) {
-      basePayload.GolApi.RequestDetail.SearchFlightsExtendedRequest_2.FlightSteps.FlightStep.push({
-        Origin: searchRequest.destination,
-        Destination: searchRequest.origin,
-        DepartureDateTime: searchRequest.returnDate,
-      });
+    if (
+      searchRequest.flightType === FlightType.RETURN &&
+      searchRequest.returnDate
+    ) {
+      basePayload.GolApi.RequestDetail.SearchFlightsExtendedRequest_2.FlightSteps.FlightStep.push(
+        {
+          Origin: searchRequest.destination,
+          Destination: searchRequest.origin,
+          DepartureDateTime: searchRequest.returnDate,
+        }
+      );
     }
 
     return basePayload;
@@ -309,9 +321,12 @@ export class GolApiPayloadBuilder {
   /**
    * Build destination search payload
    */
-  static buildDestinationSearchPayload(query: string, language: Language = Language.ENGLISH): any {
+  static buildDestinationSearchPayload(
+    query: string,
+    language: Language = Language.ENGLISH
+  ): any {
     const basePayload = this.buildBasePayload(language);
-    
+
     basePayload.GolApi.RequestDetail = {
       SearchDestinationsRequest_1: {
         SearchPattern: {
@@ -329,7 +344,7 @@ export class GolApiPayloadBuilder {
    */
   static buildSpecialOffersPayload(language: Language = Language.ENGLISH): any {
     const basePayload = this.buildBasePayload(language);
-    
+
     basePayload.GolApi.RequestDetail = {
       ListSpecialoffersRequest_1: {
         SpecialofferTypes: {
@@ -348,14 +363,15 @@ export class GolApiPayloadBuilder {
  * Response transformation utilities
  */
 export class ResponseTransformUtils {
-  
   /**
    * Transform GOL API special offers to standardized format
    */
   static transformSpecialOffers(golApiResponse: any): any[] {
-    const offers = golApiResponse?.GolApi?.ResponseDetail?.ListSpecialoffersResponse_1?.ListSpecialoffers?.SpecialofferItem || [];
+    const offers =
+      golApiResponse?.GolApi?.ResponseDetail?.ListSpecialoffersResponse_1
+        ?.ListSpecialoffers?.SpecialofferItem || [];
     const codeBook = golApiResponse?.GolApi?.CodeBook;
-    
+
     return offers.map((offer: any) => {
       // Create enriched offer with CodeBook data
       const enrichedOffer = {
@@ -369,24 +385,34 @@ export class ResponseTransformUtils {
         route: {
           origin: {
             code: offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Origin,
-            name: this.getAirportName(offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Origin, codeBook),
+            name: this.getAirportName(
+              offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Origin,
+              codeBook
+            ),
           },
           destination: {
             code: offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Destination,
-            name: this.getAirportName(offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Destination, codeBook),
+            name: this.getAirportName(
+              offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.Destination,
+              codeBook
+            ),
           },
         },
         dateRange: {
-          from: offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange?.DateFrom,
+          from: offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange
+            ?.DateFrom,
           to: offer.SpecialOfferSteps?.SpecialOfferStep?.[0]?.DateRange?.DateTo,
         },
         price: {
-          amount: parseFloat(offer.SummaryPrice?.FullPrice || '0'),
+          amount: parseFloat(offer.SummaryPrice?.FullPrice || "0"),
           currency: Currency.GHS,
-          formatted: FlightValidationUtils.formatPrice(parseFloat(offer.SummaryPrice?.FullPrice || '0'), Currency.GHS),
+          formatted: FlightValidationUtils.formatPrice(
+            parseFloat(offer.SummaryPrice?.FullPrice || "0"),
+            Currency.GHS
+          ),
         },
       };
-      
+
       return enrichedOffer;
     });
   }
@@ -422,12 +448,17 @@ export class ResponseTransformUtils {
    * Transform destination search results
    */
   static transformDestinationResults(golApiResponse: any): any[] {
-    const searchedAirports = golApiResponse?.GolApi?.ResponseDetail?.SearchDestinationsResponse_1?.SearchedAirports?.SearchedAirport || [];
+    const searchedAirports =
+      golApiResponse?.GolApi?.ResponseDetail?.SearchDestinationsResponse_1
+        ?.SearchedAirports?.SearchedAirport || [];
     const codeBook = golApiResponse?.GolApi?.CodeBook;
-    
+
     return searchedAirports.map((searched: any) => {
-      const airportDetails = this.getAirportDetails(searched.Destination, codeBook);
-      
+      const airportDetails = this.getAirportDetails(
+        searched.Destination,
+        codeBook
+      );
+
       return {
         code: searched.Destination,
         name: airportDetails.name,
@@ -435,7 +466,7 @@ export class ResponseTransformUtils {
         state: airportDetails.state,
         category: airportDetails.category,
         parent: searched.Parent,
-        showCode: searched.ShowCode === 'true',
+        showCode: searched.ShowCode === "true",
       };
     });
   }
@@ -446,12 +477,12 @@ export class ResponseTransformUtils {
   private static getAirportDetails(code: string, codeBook: any): any {
     const airports = codeBook?.Airports?.Airport || [];
     const airport = airports.find((a: any) => a.Code === code);
-    
+
     return {
       name: airport?.$t || code,
-      country: airport?.Country || '',
-      state: airport?.State || '',
-      category: airport?.Category || 'AIRPORT',
+      country: airport?.Country || "",
+      state: airport?.State || "",
+      category: airport?.Category || "AIRPORT",
     };
   }
 }
