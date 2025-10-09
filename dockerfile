@@ -1,19 +1,34 @@
-# Use the official MySQL image from Docker Hub
-FROM mysql:8.0
+# Use the official Node.js image
+FROM node:lts-alpine
 
-# Set environment variables for the MySQL root user and database
-ENV MYSQL_ROOT_PASSWORD=root
-ENV MYSQL_DATABASE=Template
-ENV MYSQL_USER=root
-ENV MYSQL_PASSWORD=root
+# Set the working directory inside the container
+WORKDIR /app
 
-# Expose the default MySQL port
-EXPOSE 3306
+# Copy package.json and package-lock.json (if available)
+COPY package*.json ./
 
-# Optional: Copy custom initialization scripts
-# Place your SQL scripts in a folder named "docker-entrypoint-initdb.d"
-# Uncomment the below line if you have custom initialization scripts
-# COPY ./docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+# Install dependencies
+RUN npm ci --only=production
 
-# Run the MySQL server
-CMD ["mysqld"]
+# Copy the rest of the application code
+COPY . .
+
+# Build the TypeScript application
+RUN npm run build
+
+# Create a non-root user to run the application
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S appuser -u 1001
+
+# Change ownership of the app directory to the appuser
+RUN chown -R appuser:nodejs /app
+USER appuser
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Define environment variable
+ENV NODE_ENV=production
+
+# Start the Express TypeScript application
+CMD ["npm", "start"]
