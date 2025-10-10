@@ -5,10 +5,6 @@ import multer from "multer";
 import User from "../schema/user.schema";
 import { encrypt } from "../../../helpers/tokenizer";
 
-// Extend Express Request to include Multer's file property
-interface MulterRequest extends Request {
-  file: Express.Multer.File;
-}
 export class UserController {
   // Admin routes
 
@@ -152,7 +148,7 @@ export class UserController {
     }
   }
 
-  static async updateUser(req: MulterRequest, res: Response) {
+  static async updateUser(req: Request, res: Response) {
     try {
       const { id } = req["currentUser"];
       const allowedFields = [

@@ -1,4 +1,4 @@
-import express, { Response, Request } from "express";
+import express, { Response, Request } from "express"; 
 import { UserController } from "../controllers/user.controller";
 import { Notification } from "../enums/notification.enum";
 import { Roles } from "../enums/roles.enum";
@@ -8,14 +8,7 @@ import { upload } from "../../../helpers/uploader";
 import { authentification } from "../../../middlewares/authentication.middleware";
 import { authorization } from "../../../middlewares/authorization.middleware";
 
-// Extend Express Request to include Multer's file property
-interface MulterRequest extends Request {
-  file: Express.Multer.File;
-}
-
-const Router = express.Router();
-
-// DELETE ACCOUNT
+const Router = express.Router();// DELETE ACCOUNT
 Router.delete(
   "/delete-user/:id",
   authentification,
@@ -42,7 +35,7 @@ Router.get("/:id", (req: Request, res: Response) => {
 Router.patch(
   "/update-user/:id",
   authentification,
-  (req: MulterRequest, res: Response) => {
+  (req: Request, res: Response) => {
     UserController.updateUser(req, res);
   }
 );
@@ -56,7 +49,7 @@ Router.get("/profile", authentification, (req: Request, res: Response) => {
 Router.patch(
   "/update-user",
   authentification,
-  (req: MulterRequest, res: Response) => {
+  (req: Request, res: Response) => {
     UserController.updateUser(req, res);
   }
 );
