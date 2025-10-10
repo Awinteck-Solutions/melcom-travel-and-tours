@@ -7,39 +7,35 @@ import { encrypt } from "../../../helpers/tokenizer";
 
 // Extend Express Request to include Multer's file property
 interface MulterRequest extends Request {
-  file: multer.File;
+  file: Express.Multer.File;
 }
 export class UserController {
   // Admin routes
-
- 
 
   // DELETE ACCOUNT
   static async deleteUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
-      User.deleteOne({_id:id})
-      .then((result) => {
+      User.deleteOne({ _id: id })
+        .then((result) => {
           return res.status(201).json({
-              status:true,
-              message: 'User delete success', 
+            status: true,
+            message: "User delete success",
           });
-      }).catch((error) => {
+        })
+        .catch((error) => {
           return res.status(404).json({
-              status: false,
-              message: 'User delete failed',
-              other: error
+            status: false,
+            message: "User delete failed",
+            other: error,
           });
-      })
-  
-    } catch (error) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Internal server error"
         });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   }
 
@@ -47,25 +43,24 @@ export class UserController {
   static async getAllUsers(req: Request, res: Response) {
     try {
       User.find()
-      .then((result) => {
+        .then((result) => {
           return res.status(201).json({
-              status:true,
-              message: 'User success', 
+            status: true,
+            message: "User success",
           });
-      }).catch((error) => {
+        })
+        .catch((error) => {
           return res.status(404).json({
-              status: false,
-              message: 'User failed',
-              other: error
+            status: false,
+            message: "User failed",
+            other: error,
           });
-      })
-    } catch (error) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Internal server error"
         });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   }
 
@@ -73,28 +68,26 @@ export class UserController {
   static async getOneUser(req: Request, res: Response) {
     try {
       let { id } = req.params;
-      User.findOne({_id:id})
+      User.findOne({ _id: id })
         .then((response) => {
-            return res.status(201).json({
-                status:true,
-                message: 'User success', 
-                response
-            });
-        }).catch((error) => {
-            return res.status(404).json({
-                status: false,
-                message: 'User failed',
-                other: error
-            });
+          return res.status(201).json({
+            status: true,
+            message: "User success",
+            response,
+          });
         })
-
-    } catch (error) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Internal server error"
+        .catch((error) => {
+          return res.status(404).json({
+            status: false,
+            message: "User failed",
+            other: error,
+          });
         });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   }
 
@@ -104,62 +97,58 @@ export class UserController {
       let { id } = req.params;
       let { status } = req.body;
       User.findOneAndUpdate(
-        { _id: id }, 
+        { _id: id },
         { $set: status },
         { new: true, runValidators: true }
       )
         .then((response) => {
-            return res.status(201).json({
-                status:true,
-              message: 'User success', 
-                response
-            });
-        }).catch((error) => {
-            return res.status(404).json({
-                status: false,
-                message: 'User failed',
-                other: error
-            });
+          return res.status(201).json({
+            status: true,
+            message: "User success",
+            response,
+          });
         })
-    } catch (error) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Internal server error"
+        .catch((error) => {
+          return res.status(404).json({
+            status: false,
+            message: "User failed",
+            other: error,
+          });
         });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   }
 
-
-  
   // User routes
   // GET PROFILE
   static async profile(req: Request, res: Response) {
     try {
       const { id } = req["currentUser"];
       console.log("id :>> ", id);
-      User.findOne({_id:id})
-      .then((response) => {
+      User.findOne({ _id: id })
+        .then((response) => {
           return res.status(201).json({
-              status:true,
-              message: 'User success', 
-              response
+            status: true,
+            message: "User success",
+            response,
           });
-      }).catch((error) => {
+        })
+        .catch((error) => {
           return res.status(404).json({
-              status: false,
-              message: 'User failed',
-              other: error
+            status: false,
+            message: "User failed",
+            other: error,
           });
-      })
-    } catch (error) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Internal server error"
         });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   }
 
@@ -175,7 +164,7 @@ export class UserController {
       const updates = req.body;
       const profileImage = req.file ? req.file.filename : null;
 
-      const user:any = {};
+      const user: any = {};
       // Only allow updates for specific fields
       Object.keys(updates).forEach((key) => {
         if (allowedFields.includes(key)) {
@@ -188,19 +177,20 @@ export class UserController {
         user.profileImage = profileImage;
       }
 
-      User.updateOne({_id:id}, {...user}, {upsert:false})
+      User.updateOne({ _id: id }, { ...user }, { upsert: false })
         .then((result) => {
-            return res.status(201).json({
-                status:true,
-                message: 'User update success', 
-            });
-        }).catch((error) => {
-            return res.status(404).json({
-                status: false,
-                message: 'User update failed',
-                other: error
-            });
+          return res.status(201).json({
+            status: true,
+            message: "User update success",
+          });
         })
+        .catch((error) => {
+          return res.status(404).json({
+            status: false,
+            message: "User update failed",
+            other: error,
+          });
+        });
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -219,23 +209,26 @@ export class UserController {
       if (!password || !newPassword) {
         return res.status(500).json({ message: "password required" });
       }
-      
-      const encryptPassword = await encrypt.encryptpass(newPassword);
-      User.updateOne({ _id: id }, { password: encryptPassword }, { upsert: false })
-      .then((result) => {
-          return res.status(201).json({
-              status:true,
-              message: 'User update success', 
-          });
-      }).catch((error) => {
-          return res.status(404).json({
-              status: false,
-              message: 'User update failed',
-              other: error
-          });
-      })
 
-      
+      const encryptPassword = await encrypt.encryptpass(newPassword);
+      User.updateOne(
+        { _id: id },
+        { password: encryptPassword },
+        { upsert: false }
+      )
+        .then((result) => {
+          return res.status(201).json({
+            status: true,
+            message: "User update success",
+          });
+        })
+        .catch((error) => {
+          return res.status(404).json({
+            status: false,
+            message: "User update failed",
+            other: error,
+          });
+        });
     } catch (error) {
       console.error(error);
       return res

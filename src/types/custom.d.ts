@@ -1,15 +1,14 @@
-import "express";
-import multer from "multer";
-
-declare global {
-  namespace Express {
-    interface Request {
-      file?: multer.File;
-      user?: {
-        id: string;
-        email: string;
-        [key: string]: any;
-      };
-    }
+declare namespace Express {
+  interface Request {
+    file?: Express.Multer.File;
+    files?:
+      | Express.Multer.File[]
+      | { [fieldname: string]: Express.Multer.File[] };
+    user?: {
+      id: string;
+      email: string;
+      role?: string;
+      [key: string]: any;
+    };
   }
 }

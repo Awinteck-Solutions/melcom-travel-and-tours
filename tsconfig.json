@@ -11,8 +11,17 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "sourceMap": true,
-      "typeRoots": ["./node_modules/@types", "./src/types"]
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "typeRoots": [
+         "./node_modules/@types",
+         "./src/types"
+      ]
    },
-   "include": ["src/**/*.ts"], // adjust if your .ts files are elsewhere
-  "exclude": ["node_modules"]
+   "include": [
+      "src/**/*.ts"
+   ], // adjust if your .ts files are elsewhere
+   "exclude": [
+      "node_modules"
+   ]
 }
