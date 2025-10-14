@@ -3,16 +3,16 @@ info:
   title: Melcom Travel & Tours Flight API
   description: |
     A comprehensive flight booking API integrated with GOL (Golibe) API for real-time flight search, deals, and booking management.
-    
+
     This API provides:
     - Real-time flight search (one-way, return, multi-city)
     - Flight deals and promotional offers
     - Airport search functionality
     - Flight booking management
     - Integration with Melcom Golibe platform
-    
+
     **Base URL:** `http://localhost:4000`
-    
+
     **Authentication:** GOL API credentials are configured server-side.
   version: 1.0.0
   contact:
@@ -46,7 +46,7 @@ paths:
       tags:
         - Utilities
       responses:
-        '200':
+        "200":
           description: Welcome message with API documentation
           content:
             application/json:
@@ -83,7 +83,7 @@ paths:
         - One-way flights
         - Return flights  
         - Multi-city flights
-        
+
         Uses real-time data from GOL API integrated with Melcom Golibe platform.
       tags:
         - Flight Search
@@ -93,9 +93,9 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: '#/components/schemas/OneWayFlightSearch'
-                - $ref: '#/components/schemas/ReturnFlightSearch'
-                - $ref: '#/components/schemas/MultiCityFlightSearch'
+                - $ref: "#/components/schemas/OneWayFlightSearch"
+                - $ref: "#/components/schemas/ReturnFlightSearch"
+                - $ref: "#/components/schemas/MultiCityFlightSearch"
             examples:
               oneWay:
                 summary: One-way flight search
@@ -123,24 +123,24 @@ paths:
                   passengers: "ADT"
                   tripType: "multicity"
       responses:
-        '200':
+        "200":
           description: Flight search results
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FlightSearchResponse'
-        '400':
+                $ref: "#/components/schemas/FlightSearchResponse"
+        "400":
           description: Bad request - missing required parameters
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flight-deals:
     get:
@@ -157,18 +157,18 @@ paths:
             type: string
             example: "promotional"
       responses:
-        '200':
+        "200":
           description: List of flight deals
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FlightDealsResponse'
-        '500':
+                $ref: "#/components/schemas/FlightDealsResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flight-deals/{id}:
     get:
@@ -184,24 +184,24 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Flight deal details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FlightDealResponse'
-        '404':
+                $ref: "#/components/schemas/FlightDealResponse"
+        "404":
           description: Flight deal not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flight-deals-categories:
     get:
@@ -210,7 +210,7 @@ paths:
       tags:
         - Flight Deals
       responses:
-        '200':
+        "200":
           description: List of flight deal categories
           content:
             application/json:
@@ -241,26 +241,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FlightBookingRequest'
+              $ref: "#/components/schemas/FlightBookingRequest"
       responses:
-        '201':
+        "201":
           description: Booking created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FlightBookingResponse'
-        '400':
+                $ref: "#/components/schemas/FlightBookingResponse"
+        "400":
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /flight-bookings/{id}:
     get:
@@ -276,24 +276,24 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Flight booking details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FlightBookingResponse'
-        '404':
+                $ref: "#/components/schemas/FlightBookingResponse"
+        "404":
           description: Booking not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /airports:
     get:
@@ -310,24 +310,24 @@ paths:
             type: string
             example: "london"
       responses:
-        '200':
+        "200":
           description: List of matching airports
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AirportSearchResponse'
-        '400':
+                $ref: "#/components/schemas/AirportSearchResponse"
+        "400":
           description: Bad request - search parameter required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
@@ -355,13 +355,13 @@ components:
           description: Departure date (YYYY-MM-DD)
           example: "2025-11-15"
         passengers:
-          $ref: '#/components/schemas/PassengerType'
+          $ref: "#/components/schemas/PassengerType"
         tripType:
           type: string
           enum: ["oneway"]
           example: "oneway"
         cabin:
-          $ref: '#/components/schemas/CabinClass'
+          $ref: "#/components/schemas/CabinClass"
 
     ReturnFlightSearch:
       type: object
@@ -392,13 +392,13 @@ components:
           description: Return date (YYYY-MM-DD)
           example: "2025-11-20"
         passengers:
-          $ref: '#/components/schemas/PassengerType'
+          $ref: "#/components/schemas/PassengerType"
         tripType:
           type: string
           enum: ["return"]
           example: "return"
         cabin:
-          $ref: '#/components/schemas/CabinClass'
+          $ref: "#/components/schemas/CabinClass"
 
     MultiCityFlightSearch:
       type: object
@@ -422,13 +422,13 @@ components:
           description: Comma-separated departure dates (YYYY-MM-DD)
           example: "2025-11-15,2025-11-18"
         passengers:
-          $ref: '#/components/schemas/PassengerType'
+          $ref: "#/components/schemas/PassengerType"
         tripType:
           type: string
           enum: ["multicity"]
           example: "multicity"
         cabin:
-          $ref: '#/components/schemas/CabinClass'
+          $ref: "#/components/schemas/CabinClass"
 
     FlightBookingRequest:
       type: object
@@ -452,7 +452,7 @@ components:
             type: object
             properties:
               type:
-                $ref: '#/components/schemas/PassengerType'
+                $ref: "#/components/schemas/PassengerType"
               title:
                 type: string
                 enum: ["Mr", "Mrs", "Ms", "Miss"]
@@ -497,7 +497,9 @@ components:
           example: "oneway flight search completed successfully"
         data:
           type: object
-          description: GOL API response data containing flight offers, pricing, and itinerary details
+          description:
+            GOL API response data containing flight offers, pricing, and
+            itinerary details
           properties:
             GolApi:
               type: object
@@ -659,11 +661,11 @@ components:
     PassengerType:
       type: string
       enum:
-        - "ADT"  # Adults (25-59)
-        - "CHD"  # Children (2-11 or up to 18)
-        - "INF"  # Infants (Up to 2 years)
-        - "YTH"  # Youth (12-24)
-        - "YCD"  # Seniors (60+)
+        - "ADT" # Adults (25-59)
+        - "CHD" # Children (2-11 or up to 18)
+        - "INF" # Infants (Up to 2 years)
+        - "YTH" # Youth (12-24)
+        - "YCD" # Seniors (60+)
       example: "ADT"
       description: |
         Passenger type codes:
@@ -676,10 +678,10 @@ components:
     CabinClass:
       type: string
       enum:
-        - "ECO"  # Economy class
-        - "PRE"  # Premium economy class
-        - "BUS"  # Business class
-        - "1ST"  # First class
+        - "ECO" # Economy class
+        - "PRE" # Premium economy class
+        - "BUS" # Business class
+        - "1ST" # First class
       example: "ECO"
       description: |
         Cabin class codes:
@@ -711,7 +713,6 @@ components:
       in: header
       name: X-API-Key
       description: API key for authentication (if required)
-
 # Security (if authentication is needed)
 # security:
 #   - ApiKeyAuth: []
