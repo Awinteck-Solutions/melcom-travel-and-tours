@@ -14,55 +14,64 @@ export class AuthController {
     try {
       const { firstname, lastname, email, password } = req.body;
 
-      // Check if the email already exists
-      //generate OTP code
-      var otp = getRandomInt(999, 9999);
+      // Validate required fields
+      if (!firstname || !lastname || !email || !password) {
+        return res.status(400).json({
+          status: false,
+          message:
+            "All fields (firstname, lastname, email, password) are required",
+        });
+      }
 
+      // Check if the email already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(409).json({
+          status: false,
+          message: "User with this email already exists",
+        });
+      }
+
+      // Generate OTP code
+      const otp = getRandomInt(999, 9999);
       const encryptedPassword = await encrypt.encryptpass(password);
 
-      const user = User({
+      const user = new User({
         firstname,
         lastname,
         email,
         password: encryptedPassword,
         otp,
       });
-      user
-        .save()
-        .then((user) => {
-          const token = encrypt.generateToken({
-            id: user.id,
-            email: user.email,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            role: user.role,
-          });
 
-          return res.status(201).json({
-            status: true,
-            message: "New User registered",
-            user: { ...user._doc, token },
-          });
-        })
-        .catch((error) => {
-          console.log("error :>> ", error);
-          return res.status(404).json({
-            status: false,
-            message: "Unsuccessful registration",
-            other: error,
-          });
-        });
+      const savedUser = await user.save();
+      const token = encrypt.generateToken({
+        id: savedUser._id,
+        email: savedUser.email,
+        firstname: savedUser.firstname,
+        lastname: savedUser.lastname,
+        role: savedUser.role,
+      });
 
-      //    sendMail(
-      //     user.email,
-      //     user.firstname,
-      //     'LMG - Welcome',
-      //     'signupHtml',''
-      // )
+      return res.status(201).json({
+        status: true,
+        message: "User registered successfully",
+        user: {
+          id: savedUser._id,
+          firstname: savedUser.firstname,
+          lastname: savedUser.lastname,
+          email: savedUser.email,
+          role: savedUser.role,
+          token: token,
+        },
+      });
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: error["sqlMessage"] });
+      console.error('Signup error:', error);
+      return res.status(500).json({ 
+        status: false,
+        message: "Internal server error", 
+        error: error.message || "Unknown error"
+      });
     }
   }
 
@@ -72,65 +81,59 @@ export class AuthController {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        return res
-          .status(500)
-          .json({ message: " email and password required" });
+        return res.status(400).json({
+          status: false,
+          message: "Email and password are required",
+        });
       }
-      console.log("email, password :>> ", email, password);
 
-      User.findOne({ email })
-        .then((user) => {
-          console.log("result :>> ", user);
-          let remotePassword = user.password;
-          encrypt
-            .comparepassword(password, remotePassword)
-            .then((result) => {
-              if (result == true) {
-                console.log("bcrypt message", result);
-                //sending response
-                const token = encrypt.generateToken({
-                  id: user._id,
-                  email: user.email,
-                  firstname: user.firstname,
-                  lastname: user.lastname,
-                  role: user.role,
-                });
-                return res.json({
-                  status: true,
-                  message: "Login success",
-                  response: { ...user, token },
-                });
-              } else {
-                res.status(404).json({
-                  status: false,
-                  message: "password incorrect!",
-                });
-              }
-            })
-            .catch((err) => {
-              res.status(404).json({
-                status: false,
-                message: "password error!",
-              });
-              return;
-            });
-        })
-        .catch((error) => {
-          res.status(404).json({
-            status: false,
-            message: "password incorrect!",
-          });
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
+
+      const isPasswordValid = await encrypt.comparepassword(
+        password,
+        user.password
+      );
+
+      if (isPasswordValid) {
+        const token = encrypt.generateToken({
+          id: user._id,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          role: user.role,
         });
 
-      // sendMail(
-      //     'barnabassampawin@gmail.com',
-      //     user.firstname,
-      //     'Login success',
-      //     'signup',''
-      // )
+        return res.json({
+          status: true,
+          message: "Login successful",
+          user: {
+            id: user._id,
+            email: user.email,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            role: user.role,
+            token: token,
+          },
+        });
+      } else {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid credentials",
+        });
+      }
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal server error" });
+      console.error("Login error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+      });
     }
   }
 
