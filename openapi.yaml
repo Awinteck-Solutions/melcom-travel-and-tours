@@ -510,7 +510,8 @@ paths:
       tags:
         - Blogs
       summary: Get all blogs
-      description: Retrieve a list of all published blogs with pagination support
+      description:
+        Retrieve a list of all published blogs with pagination support
       parameters:
         - name: page
           in: query
@@ -1101,7 +1102,8 @@ paths:
                     example: true
                   message:
                     type: string
-                    example: "Terms and Conditions content retrieved successfully"
+                    example:
+                      "Terms and Conditions content retrieved successfully"
                   data:
                     $ref: "#/components/schemas/StaticContent"
 
@@ -2032,7 +2034,8 @@ components:
           example: "Top 10 Travel Destinations in 2025"
         content:
           type: string
-          example: "Discover amazing travel destinations for your next adventure..."
+          example:
+            "Discover amazing travel destinations for your next adventure..."
         excerpt:
           type: string
           example: "A comprehensive guide to the best travel destinations..."
@@ -2091,7 +2094,8 @@ components:
           example: "Top 10 Travel Destinations in 2025"
         content:
           type: string
-          example: "Discover amazing travel destinations for your next adventure..."
+          example:
+            "Discover amazing travel destinations for your next adventure..."
         excerpt:
           type: string
           example: "A comprehensive guide to the best travel destinations..."
@@ -2123,7 +2127,8 @@ components:
           example: "Updated content with amazing travel destinations..."
         excerpt:
           type: string
-          example: "Updated comprehensive guide to the best travel destinations..."
+          example:
+            "Updated comprehensive guide to the best travel destinations..."
         category:
           type: string
           example: "travel-tips"
@@ -2161,12 +2166,19 @@ components:
           example: "Africa"
         description:
           type: string
-          example: "Experience the rich culture and beautiful landscapes of Ghana..."
+          example:
+            "Experience the rich culture and beautiful landscapes of Ghana..."
         highlights:
           type: array
           items:
             type: string
-          example: ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris", "Historic forts"]
+          example:
+            [
+              "Rich cultural heritage",
+              "Beautiful beaches",
+              "Wildlife safaris",
+              "Historic forts",
+            ]
         bestTimeToVisit:
           type: string
           example: "November to March"
@@ -2195,7 +2207,13 @@ components:
           type: array
           items:
             type: string
-          example: ["Cultural tours", "Beach activities", "Wildlife viewing", "Historical sites"]
+          example:
+            [
+              "Cultural tours",
+              "Beach activities",
+              "Wildlife viewing",
+              "Historical sites",
+            ]
         featuredImage:
           type: string
           example: "https://example.com/images/ghana-featured.jpg"
@@ -2203,7 +2221,11 @@ components:
           type: array
           items:
             type: string
-          example: ["https://example.com/images/ghana-1.jpg", "https://example.com/images/ghana-2.jpg"]
+          example:
+            [
+              "https://example.com/images/ghana-1.jpg",
+              "https://example.com/images/ghana-2.jpg",
+            ]
         rating:
           type: number
           format: float
@@ -2244,12 +2266,14 @@ components:
           example: "Africa"
         description:
           type: string
-          example: "Experience the rich culture and beautiful landscapes of Ghana..."
+          example:
+            "Experience the rich culture and beautiful landscapes of Ghana..."
         highlights:
           type: array
           items:
             type: string
-          example: ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris"]
+          example:
+            ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris"]
         bestTimeToVisit:
           type: string
           example: "November to March"
@@ -2287,7 +2311,11 @@ components:
           type: array
           items:
             type: string
-          example: ["https://example.com/images/ghana-1.jpg", "https://example.com/images/ghana-2.jpg"]
+          example:
+            [
+              "https://example.com/images/ghana-1.jpg",
+              "https://example.com/images/ghana-2.jpg",
+            ]
 
     UpdateRecommendedCountryRequest:
       type: object
@@ -2306,12 +2334,20 @@ components:
           example: "Africa"
         description:
           type: string
-          example: "Updated: Experience the rich culture and beautiful landscapes of Ghana..."
+          example:
+            "Updated: Experience the rich culture and beautiful landscapes of
+            Ghana..."
         highlights:
           type: array
           items:
             type: string
-          example: ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris", "Historic forts"]
+          example:
+            [
+              "Rich cultural heritage",
+              "Beautiful beaches",
+              "Wildlife safaris",
+              "Historic forts",
+            ]
         bestTimeToVisit:
           type: string
           example: "November to March"
@@ -2341,7 +2377,13 @@ components:
           type: array
           items:
             type: string
-          example: ["Cultural tours", "Beach activities", "Wildlife viewing", "Historical sites"]
+          example:
+            [
+              "Cultural tours",
+              "Beach activities",
+              "Wildlife viewing",
+              "Historical sites",
+            ]
         featuredImage:
           type: string
           example: "https://example.com/images/ghana-featured.jpg"
@@ -2349,7 +2391,11 @@ components:
           type: array
           items:
             type: string
-          example: ["https://example.com/images/ghana-1.jpg", "https://example.com/images/ghana-2.jpg"]
+          example:
+            [
+              "https://example.com/images/ghana-1.jpg",
+              "https://example.com/images/ghana-2.jpg",
+            ]
 
     # Static Content Schemas
     StaticContent:
@@ -2363,7 +2409,9 @@ components:
           example: "About Melcom Travel & Tours"
         content:
           type: string
-          example: "We are a leading travel agency dedicated to providing exceptional travel experiences..."
+          example:
+            "We are a leading travel agency dedicated to providing exceptional
+            travel experiences..."
         lastUpdated:
           type: string
           format: date-time
@@ -2487,7 +2535,9 @@ components:
           example: "Flight Booking Inquiry"
         message:
           type: string
-          example: "I would like to inquire about booking a flight from Accra to London..."
+          example:
+            "I would like to inquire about booking a flight from Accra to
+            London..."
         category:
           type: string
           enum: ["general", "booking", "complaint", "suggestion", "technical"]
@@ -2513,7 +2563,9 @@ components:
           example: "Flight Booking Inquiry"
         message:
           type: string
-          example: "I would like to inquire about booking a flight from Accra to London..."
+          example:
+            "I would like to inquire about booking a flight from Accra to
+            London..."
         category:
           type: string
           example: "booking"
@@ -2533,7 +2585,8 @@ components:
         response:
           type: string
           nullable: true
-          example: "Thank you for your inquiry. We will get back to you shortly..."
+          example:
+            "Thank you for your inquiry. We will get back to you shortly..."
 
     FAQ:
       type: object
@@ -2546,7 +2599,9 @@ components:
           example: "How can I cancel my flight booking?"
         answer:
           type: string
-          example: "You can cancel your flight booking by logging into your account and selecting the booking you wish to cancel..."
+          example:
+            "You can cancel your flight booking by logging into your account and
+            selecting the booking you wish to cancel..."
         category:
           type: string
           example: "booking"
@@ -2578,7 +2633,8 @@ components:
           example: "How can I cancel my flight booking?"
         answer:
           type: string
-          example: "You can cancel your flight booking by logging into your account..."
+          example:
+            "You can cancel your flight booking by logging into your account..."
         category:
           type: string
           example: "booking"
@@ -2599,7 +2655,9 @@ components:
           example: "How can I cancel or modify my flight booking?"
         answer:
           type: string
-          example: "Updated: You can cancel or modify your flight booking by logging into your account..."
+          example:
+            "Updated: You can cancel or modify your flight booking by logging
+            into your account..."
         category:
           type: string
           example: "booking"
