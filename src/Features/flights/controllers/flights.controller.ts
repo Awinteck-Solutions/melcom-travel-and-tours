@@ -78,22 +78,69 @@ export class FlightsController {
         },
       });
 
-      let deals = response.data;
+      const golData = response.data.GolApi;
+      const specialOffers = golData.ResponseDetail?.ListSpecialoffersResponse_1?.ListSpecialoffers?.SpecialofferItem || [];
+      
+      // Transform deals to user-friendly format
+      const deals = specialOffers.map(offer => {
+        const step = offer.SpecialOfferSteps?.SpecialOfferStep?.[0] || {};
+        return {
+          id: offer.SpecialOfferId,
+          type: offer.Type,
+          airline: {
+            code: offer.MarketingAirline,
+            name: golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
+              airline => airline.Code === offer.MarketingAirline
+            )?.Name?.$t || offer.MarketingAirline,
+            logo: golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
+              airline => airline.Code === offer.MarketingAirline
+            )?.LogoUrl?.$t
+          },
+          route: {
+            from: {
+              code: step.Origin,
+              name: golData.CodeBook?.Airports?.Airport?.find(
+                airport => airport.Code === step.Origin
+              )?.$t || step.Origin
+            },
+            to: {
+              code: step.Destination,
+              name: golData.CodeBook?.Airports?.Airport?.find(
+                airport => airport.Code === step.Destination
+              )?.$t || step.Destination
+            }
+          },
+          price: {
+            amount: offer.SummaryPrice?.FullPrice || "0",
+            currency: golData.Settings?.Currency?.Code || "GHS",
+            formatted: `${offer.SummaryPrice?.FullPrice || "0"} ${golData.Settings?.Currency?.Code || "GHS"}`
+          },
+          validPeriod: {
+            from: step.DateRange?.DateFrom,
+            to: step.DateRange?.DateTo
+          },
+          savings: "Special offer pricing" // Can be enhanced with actual savings calculation
+        };
+      });
 
       // Filter by category if provided
-      if (
-        category &&
-        deals?.GolApi?.ResponseDetail?.ListSpecialoffersResponse_1
-          ?.Specialoffers
-      ) {
-        // Apply category filter logic here based on GOL API response structure
+      let filteredDeals = deals;
+      if (category && typeof category === 'string') {
+        filteredDeals = deals.filter(deal => 
+          deal.type.toLowerCase().includes(category.toLowerCase()) ||
+          deal.airline.name.toLowerCase().includes(category.toLowerCase())
+        );
       }
 
       return res.status(200).json({
         success: true,
         message: "Flight deals retrieved successfully",
-        data: deals,
-        filters: { category },
+        summary: {
+          totalDeals: filteredDeals.length,
+          currency: golData.Settings?.Currency?.Code || "GHS",
+          filterApplied: category || null
+        },
+        deals: filteredDeals
       });
     } catch (error) {
       return res.status(500).json({
@@ -301,20 +348,93 @@ export class FlightsController {
         },
       });
 
+      // Transform GOL API response to user-friendly format
+      const golData = response.data.GolApi;
+      const flightOffers = golData.ResponseDetail?.SearchFlightsExtendedResponse_2?.FlightOffers || [];
+      
+      // Format flight results
+      const flights = [];
+      
+      flightOffers.forEach(offerGroup => {
+        if (offerGroup.FlightOffer && Array.isArray(offerGroup.FlightOffer)) {
+          offerGroup.FlightOffer.forEach(offer => {
+            // Extract pricing information - simplified
+            const pricingDetails = offer.PricingDetails?.PricingDetail || [];
+            const bestPrice = pricingDetails.length > 0 ? pricingDetails[0] : null;
+            
+            // Extract flight segments - simplified
+            const flightStreams = offer.FlightItinerary?.FlightStream || [];
+            const segments = [];
+            
+            flightStreams.forEach(stream => {
+              const options = stream.FlightOption || [];
+              options.forEach(option => {
+                const flightSegments = option.FlightSegments?.FlightSegment || [];
+                flightSegments.forEach(segment => {
+                  segments.push({
+                    flightNumber: segment.FlightNumber,
+                    airline: {
+                      code: segment.MarketingAirline,
+                      name: golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
+                        airline => airline.Code === segment.MarketingAirline
+                      )?.Name?.$t || segment.MarketingAirline
+                    },
+                    aircraft: segment.PlaneType,
+                    departure: {
+                      airport: segment.OriginAirport,
+                      time: segment.DepartureDateTime,
+                      terminal: segment.DepartureTerminal
+                    },
+                    arrival: {
+                      airport: segment.DestinationAirport,
+                      time: segment.ArrivalDateTime,
+                      terminal: segment.ArrivalTerminal
+                    },
+                    duration: segment.JourneyDuration,
+                    cabinClass: segment.CabinClass
+                  });
+                });
+              });
+            });
+
+            // Only add flights with valid pricing
+            if (bestPrice) {
+              flights.push({
+                price: {
+                  total: bestPrice.FlightPricing?.FlightPrice?.FullPrice || "0",
+                  perPassenger: bestPrice.FlightPricing?.FlightPrice?.DisplayPricePerPassenger || "0",
+                  currency: golData.Settings?.Currency?.Code || "GHS"
+                },
+                segments: segments,
+                bookingReference: bestPrice.Key,
+                airline: segments[0]?.airline?.name || "Unknown"
+              });
+            }
+          });
+        }
+      });
+
+      // Get airport information for context
+      const airports = golData.CodeBook?.Airports?.Airport || [];
+      const airlines = golData.CodeBook?.TransportCompanies?.TransportCompany || [];
+
       return res.status(200).json({
         success: true,
         message: `${flightType} flight search completed successfully`,
-        data: response.data,
-        search_params: {
-          type: flightType,
-          origin,
-          destination,
+        searchInfo: {
+          searchType: flightType,
+          route: flightType === "multicity" 
+            ? `${origin} → ${destinations}` 
+            : `${origin} → ${destination}`,
           departureDate,
           returnDate,
-          destinations,
-          departureDates,
-          passengers,
+          passengers
         },
+        results: {
+          totalFlights: flights.length,
+          currency: golData.Settings?.Currency?.Code || "GHS",
+          flights: flights
+        }
       });
     } catch (error) {
       return res.status(500).json({
@@ -409,11 +529,44 @@ export class FlightsController {
         },
       });
 
+      const golData = response.data.GolApi;
+      
+      // Get the airport data from CodeBook
+      const airportData = golData.CodeBook?.Airports?.Airport || [];
+      
+      // Get the search results
+      const searchedAirports = golData.ResponseDetail?.SearchDestinationsResponse_1?.SearchedAirports?.SearchedAirport || [];
+      
+      // Transform airports to user-friendly format
+      const airports = [];
+      
+      searchedAirports.forEach(searchResult => {
+        // Find the corresponding airport details from CodeBook
+        const airportDetails = airportData.find(airport => airport.Code === searchResult.Destination);
+        
+        if (airportDetails && searchResult.ShowCode === "true") {
+          airports.push({
+            code: airportDetails.Code,
+            name: airportDetails.$t,
+            country: {
+              code: airportDetails.Country,
+              name: airportDetails.Country // Could be enhanced with full country names
+            },
+            state: airportDetails.State || null,
+            category: airportDetails.Category?.toLowerCase() || "airport",
+            parent: airportDetails.Parent || null
+          });
+        }
+      });
+
       return res.status(200).json({
         success: true,
         message: "Airports retrieved successfully",
-        data: response.data,
-        search_term: searchTerm,
+        searchInfo: {
+          query: searchTerm,
+          totalResults: airports.length
+        },
+        airports: airports
       });
     } catch (error) {
       return res.status(500).json({
