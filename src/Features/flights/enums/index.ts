@@ -11,3 +11,4 @@ export { CurrencyEnum } from "./currency.enum";
 export { GOLRequestTypeEnum } from "./gol-request-type.enum";
 export { FlightSearchStatusEnum } from "./flight-search-status.enum";
 export { BookingStatusEnum } from "./booking-status.enum";
+export { FlightPreferenceEnum } from "./flight-preference.enum";

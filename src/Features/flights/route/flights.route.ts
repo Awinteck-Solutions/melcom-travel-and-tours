@@ -4,33 +4,40 @@ import { FlightsController } from "../controllers/flights.controller";
 
 const Router = express.Router();
 
-// ----------------------------------------- FLIGHTS ROUTES (GOL API INTERMEDIARY) ---------------------------------------------------
+// ----------------------------------------- FLIGHT SEARCH ROUTES ---------------------------------------------------
 
-// Flight Search Routes
-Router.get("/flights/search", (req: Request, res: Response) => {
+// Flight Search Route (handles one-way, return, multi-city)
+Router.post("/flights/search", (req: Request, res: Response) => {
   FlightsController.searchFlights(req, res);
 });
 
-Router.get("/flights/:id", (req: Request, res: Response) => {
-  FlightsController.getFlightById(req, res);
+// ----------------------------------------- FLIGHT DEALS ROUTES ---------------------------------------------------
+
+// Flight Deals Routes
+Router.get("/flight-deals", (req: Request, res: Response) => {
+  FlightsController.getFlightDeals(req, res);
 });
 
-Router.get("/flights/offers", (req: Request, res: Response) => {
-  FlightsController.getFlightOffers(req, res);
+Router.get("/flight-deals/:id", (req: Request, res: Response) => {
+  FlightsController.getFlightDealById(req, res);
 });
 
-// Flight Booking Routes (GOL API Integration)
-Router.post("/flights/bookings", (req: Request, res: Response) => {
+Router.get("/flight-deals-categories", (req: Request, res: Response) => {
+  FlightsController.getFlightDealsCategories(req, res);
+});
+
+// ----------------------------------------- FLIGHT BOOKINGS ROUTES ---------------------------------------------------
+
+// Flight Booking Routes
+Router.post("/flight-bookings", (req: Request, res: Response) => {
   FlightsController.createFlightBooking(req, res);
 });
 
-Router.get("/flights/bookings/:id", (req: Request, res: Response) => {
+Router.get("/flight-bookings/:id", (req: Request, res: Response) => {
   FlightsController.getFlightBookingById(req, res);
 });
 
-Router.put("/flights/bookings/:id/cancel", (req: Request, res: Response) => {
-  FlightsController.cancelFlightBooking(req, res);
-});
+// ----------------------------------------- UTILITY ROUTES ---------------------------------------------------
 
 // Airports and Utilities
 Router.get("/airports", (req: Request, res: Response) => {

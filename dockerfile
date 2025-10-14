@@ -16,12 +16,6 @@ COPY . .
 # Build the TypeScript application
 RUN npm run build
 
-# Copy swagger-output.json to build directory
-RUN cp src/swagger-output.json build/swagger-output.json
-
-# Debug: List files in build directory to verify swagger file exists
-RUN ls -la build/ | grep swagger
-
 # Create a non-root user to run the application
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S appuser -u 1001

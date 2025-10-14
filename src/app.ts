@@ -10,8 +10,6 @@ import { errorHandler } from "./middlewares/errorHandler.middleware";
 import cors from "cors";
 import path from "path";
 import connectToDatabase from "./database/data-source";
-import swaggerUi from "swagger-ui-express";
-const swaggerDocument = require("./swagger-output.json");
 
 dotenv.config();
 const app = express();
@@ -21,13 +19,34 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(errorHandler);
 app.use(Router);
 
-app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use((req, res, next) => {
+  console.log("req.url :>> ", req.url);
+  next();
+});
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/", (req: Request, res: Response) => {
   res.json({
-    message: "Welcome to Template API",
+    message: "Welcome to Melcom Travel & Tours API",
+    version: "1.0.0",
+    endpoints: {
+      flights: {
+        search: "POST /flights/search",
+        deals: "GET /flight-deals",
+        bookings: "POST /flight-bookings",
+        airports: "GET /airports",
+      },
+      auth: {
+        login: "POST /auth/login",
+        register: "POST /auth/register",
+      },
+      users: {
+        profile: "GET /users/profile",
+      },
+    },
+    documentation:
+      "See FLIGHT_API_DOCUMENTATION.md for detailed API documentation",
   });
 });
 
