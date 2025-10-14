@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copy the rest of the application code
 COPY . .
@@ -25,7 +25,7 @@ RUN chown -R appuser:nodejs /app
 USER appuser
 
 # Expose the port the app runs on
-EXPOSE 3000
+EXPOSE 4000
 
 # Define environment variable
 ENV NODE_ENV=production
