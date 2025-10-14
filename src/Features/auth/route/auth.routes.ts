@@ -26,6 +26,12 @@ Router.post("/login",
     }
 );
 
+Router.post("/google",
+    (req: Request, res: Response) => { 
+        AuthController.googleAuth(req, res)
+    }
+);
+
 Router.post("/forget-password",
     (req: Request, res: Response) => { 
         AuthController.forgetPassword(req, res)

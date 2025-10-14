@@ -9,6 +9,7 @@ const userSchema = new Schema({
     lastname: {type: String, default: null},
     image: {type: String, default: null},
     otp: { type: String, required: true },
+    googleId: { type: String, default: null, unique: true, sparse: true },
     status: {
         type: String,
         enum : ['ACTIVE','DEACTIVE'],

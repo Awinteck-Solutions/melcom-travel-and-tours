@@ -7,6 +7,7 @@ import { randomInt } from "crypto";
 import { sendMail } from "../../../helpers/emailer";
 import User from "../schema/user.schema";
 import getRandomInt from "../../../helpers/random";
+import { OAuth2Client } from "google-auth-library";
 
 export class AuthController {
   // SIGNUP
@@ -133,6 +134,98 @@ export class AuthController {
       return res.status(500).json({
         status: false,
         message: "Internal server error",
+      });
+    }
+  }
+
+  // GOOGLE AUTHENTICATION
+  static async googleAuth(req: Request, res: Response) {
+    try {
+      const { idToken } = req.body;
+
+      if (!idToken) {
+        return res.status(400).json({
+          status: false,
+          message: "Google ID token is required"
+        });
+      }
+
+      // Initialize Google OAuth client
+      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+      // Verify the Google ID token
+      const ticket = await client.verifyIdToken({
+        idToken: idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+      
+      if (!payload) {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid Google token"
+        });
+      }
+
+      const { email, given_name, family_name, picture, sub: googleId } = payload;
+
+      // Check if user already exists
+      let user = await User.findOne({ email });
+
+      if (user) {
+        // User exists, update Google ID if not already set
+        if (!user.googleId) {
+          user.googleId = googleId;
+          await user.save();
+        }
+      } else {
+        // Create new user with Google details
+        const otp = getRandomInt(999, 9999);
+        
+        user = new User({
+          firstname: given_name || "Google",
+          lastname: family_name || "User",
+          email: email,
+          password: await encrypt.encryptpass(googleId), // Use Google ID as password backup
+          otp,
+          googleId: googleId,
+          image: picture || null,
+          status: "ACTIVE"
+        });
+
+        await user.save();
+      }
+
+      // Generate JWT token
+      const token = encrypt.generateToken({
+        id: user._id,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        role: user.role,
+      });
+
+      return res.json({
+        status: true,
+        message: "Google authentication successful",
+        user: {
+          id: user._id,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          role: user.role,
+          image: user.image,
+          token: token
+        },
+      });
+
+    } catch (error) {
+      console.error("Google auth error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Google authentication failed",
+        error: error.message
       });
     }
   }
