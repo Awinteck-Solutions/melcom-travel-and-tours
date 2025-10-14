@@ -29,6 +29,10 @@ Router.get("/flight-deals-categories", (req: Request, res: Response) => {
 // ----------------------------------------- FLIGHT BOOKINGS ROUTES ---------------------------------------------------
 
 // Flight Booking Routes
+Router.get("/flight-bookings", (req: Request, res: Response) => {
+  FlightsController.getAllFlightBookings(req, res);
+});
+
 Router.post("/flight-bookings", (req: Request, res: Response) => {
   FlightsController.createFlightBooking(req, res);
 });

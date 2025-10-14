@@ -464,6 +464,22 @@ export class FlightsController {
 
   // ===== BOOKING ENDPOINTS =====
 
+  // Get all flight bookings
+  static async getAllFlightBookings(req: Request, res: Response) {
+    try {
+      return res.status(501).json({
+        success: false,
+        message: "Get all flight bookings endpoint - logic to be implemented",
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "System error",
+        error: error.message,
+      });
+    }
+  }
+
   // Create a new flight booking
   static async createFlightBooking(req: Request, res: Response) {
     try {

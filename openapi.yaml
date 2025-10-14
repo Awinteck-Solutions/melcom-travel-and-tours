@@ -1,20 +1,25 @@
 openapi: 3.1.0
 info:
-  title: Melcom Travel & Tours Flight API
+  title: Melcom Travel & Tours API
   description: |
-    A comprehensive flight booking API integrated with GOL (Golibe) API for real-time flight search, deals, and booking management.
+    A comprehensive travel platform API providing flight booking, content management, analytics, and user authentication services.
 
     This API provides:
-    - Real-time flight search (one-way, return, multi-city)
+    - User authentication with Google OAuth support
+    - Real-time flight search and booking
     - Flight deals and promotional offers
-    - Airport search functionality
-    - Flight booking management
-    - Integration with Melcom Golibe platform
+    - Blog and content management system
+    - Recommended countries and destinations
+    - Contact forms and inquiry management
+    - FAQ management
+    - Analytics and tracking
+    - Static content delivery
 
-    **Base URL:** `http://localhost:4000`
+    **Base URL Development:** `http://localhost:4000`
+    **Base URL Production:** `https://api.melcomtravels.com`
 
-    **Authentication:** GOL API credentials are configured server-side.
-  version: 1.0.0
+    **Authentication:** JWT tokens and Google OAuth supported.
+  version: 2.0.0
   contact:
     name: Awinteck Solutions
     email: info@awinteck.com
@@ -25,55 +30,225 @@ info:
 servers:
   - url: http://localhost:4000
     description: Development server
-  - url: https://api.melcomtravel.com
+  - url: https://api.melcomtravels.com
     description: Production server
 
 tags:
-  - name: Flight Search
-    description: Flight search operations (one-way, return, multi-city)
-  - name: Flight Deals
-    description: Flight deals and promotional offers
-  - name: Flight Booking
-    description: Flight booking management
-  - name: Utilities
-    description: Airport search and other utility endpoints
+  - name: Authentication
+    description: User authentication and profile management
+  - name: Flights
+    description: Flight search, booking, deals, and airport information
+  - name: Blogs
+    description: Blog and content management
+  - name: Recommended Countries
+    description: Recommended destinations and countries
+  - name: Content Management
+    description: Static content and policies
+  - name: Contact & Support
+    description: Contact forms, inquiries, and FAQs
+  - name: Analytics
+    description: Analytics and tracking endpoints
+  - name: Bookings
+    description: General booking management
 
 paths:
-  /:
-    get:
-      summary: API Welcome Message
-      description: Welcome endpoint with API information and available endpoints
+  # ========================
+  # AUTHENTICATION ENDPOINTS
+  # ========================
+  /auth/register:
+    post:
+      summary: Register new user
+      description: Create a new user account with email and password
       tags:
-        - Utilities
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - firstname
+                - lastname
+                - email
+                - password
+              properties:
+                firstname:
+                  type: string
+                  example: "John"
+                lastname:
+                  type: string
+                  example: "Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  minLength: 6
+                  example: "securePassword123"
       responses:
-        "200":
-          description: Welcome message with API documentation
+        "201":
+          description: User registered successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: boolean
+                    example: true
                   message:
                     type: string
-                    example: "Welcome to Melcom Travel & Tours API"
-                  version:
-                    type: string
-                    example: "1.0.0"
-                  endpoints:
+                    example: "User registered successfully"
+                  user:
                     type: object
                     properties:
-                      flights:
-                        type: array
-                        items:
-                          type: string
-                      deals:
-                        type: array
-                        items:
-                          type: string
-                      utilities:
-                        type: array
-                        items:
-                          type: string
+                      id:
+                        type: string
+                        example: "507f1f77bcf86cd799439011"
+                      firstname:
+                        type: string
+                        example: "John"
+                      lastname:
+                        type: string
+                        example: "Doe"
+                      email:
+                        type: string
+                        example: "john.doe@example.com"
+                      role:
+                        type: string
+                        example: "user"
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "409":
+          description: User already exists
+        "400":
+          description: Validation error
+
+  /auth/login:
+    post:
+      summary: User login
+      description: Authenticate user with email and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  example: "securePassword123"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Login successful"
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "507f1f77bcf86cd799439011"
+                      email:
+                        type: string
+                        example: "john.doe@example.com"
+                      firstname:
+                        type: string
+                        example: "John"
+                      lastname:
+                        type: string
+                        example: "Doe"
+                      role:
+                        type: string
+                        example: "user"
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          description: Invalid credentials
+        "404":
+          description: User not found
+
+  /auth/google:
+    post:
+      summary: Google OAuth authentication
+      description: Authenticate user with Google ID token
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idToken
+              properties:
+                idToken:
+                  type: string
+                  description: Google ID token from frontend
+                  example: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjdkYzAyN..."
+      responses:
+        "200":
+          description: Google authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Google authentication successful"
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "507f1f77bcf86cd799439011"
+                      email:
+                        type: string
+                        example: "john.doe@gmail.com"
+                      firstname:
+                        type: string
+                        example: "John"
+                      lastname:
+                        type: string
+                        example: "Doe"
+                      role:
+                        type: string
+                        example: "user"
+                      image:
+                        type: string
+                        example: "https://lh3.googleusercontent.com/..."
+                      token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          description: Invalid Google token
 
   /flights/search:
     post:
@@ -86,7 +261,7 @@ paths:
 
         Uses real-time data from GOL API integrated with Melcom Golibe platform.
       tags:
-        - Flight Search
+        - Flights
       requestBody:
         required: true
         content:
@@ -147,7 +322,7 @@ paths:
       summary: Get flight deals
       description: Get promotional flight deals and special offers from GOL API
       tags:
-        - Flight Deals
+        - Flights
       parameters:
         - name: category
           in: query
@@ -175,7 +350,7 @@ paths:
       summary: Get flight deal by ID
       description: Get specific flight deal details by ID
       tags:
-        - Flight Deals
+        - Flights
       parameters:
         - name: id
           in: path
@@ -208,7 +383,7 @@ paths:
       summary: Get flight deal categories
       description: Get available flight deal categories
       tags:
-        - Flight Deals
+        - Flights
       responses:
         "200":
           description: List of flight deal categories
@@ -235,7 +410,7 @@ paths:
       summary: Create flight booking
       description: Create a new flight booking
       tags:
-        - Flight Booking
+        - Flights
       requestBody:
         required: true
         content:
@@ -267,7 +442,7 @@ paths:
       summary: Get flight booking by ID
       description: Get flight booking details by ID
       tags:
-        - Flight Booking
+        - Flights
       parameters:
         - name: id
           in: path
@@ -300,7 +475,7 @@ paths:
       summary: Search airports
       description: Search for airports by name, city, or IATA code
       tags:
-        - Utilities
+        - Flights
       parameters:
         - name: search
           in: query
@@ -324,6 +499,1144 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Blogs Management Endpoints
+  /blogs:
+    get:
+      tags:
+        - Blogs
+      summary: Get all blogs
+      description: Retrieve a list of all published blogs with pagination support
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Number of blogs per page
+          schema:
+            type: integer
+            default: 10
+            example: 10
+        - name: category
+          in: query
+          description: Filter blogs by category
+          schema:
+            type: string
+            example: "travel-tips"
+      responses:
+        "200":
+          description: Successfully retrieved blogs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blogs retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      blogs:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Blog"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Blogs
+      summary: Create a new blog
+      description: Create a new blog post (Admin only)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBlogRequest"
+      responses:
+        "201":
+          description: Blog created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blog created successfully"
+                  data:
+                    $ref: "#/components/schemas/Blog"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /blogs/{id}:
+    get:
+      tags:
+        - Blogs
+      summary: Get blog by ID
+      description: Retrieve a specific blog post by its ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: Blog retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blog retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/Blog"
+        "404":
+          description: Blog not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Blogs
+      summary: Update blog
+      description: Update an existing blog post (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBlogRequest"
+      responses:
+        "200":
+          description: Blog updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blog updated successfully"
+                  data:
+                    $ref: "#/components/schemas/Blog"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Blog not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Blogs
+      summary: Delete blog
+      description: Delete a blog post (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Blog ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: Blog deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Blog deleted successfully"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Blog not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Recommended Countries Endpoints
+  /recommended-countries:
+    get:
+      tags:
+        - Content Management
+      summary: Get all recommended countries
+      description: Retrieve a list of all recommended countries for travel
+      responses:
+        "200":
+          description: Successfully retrieved recommended countries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Recommended countries retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RecommendedCountry"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Content Management
+      summary: Create recommended country
+      description: Add a new country to the recommended list (Admin only)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecommendedCountryRequest"
+      responses:
+        "201":
+          description: Recommended country created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Recommended country created successfully"
+                  data:
+                    $ref: "#/components/schemas/RecommendedCountry"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /recommended-countries/filter:
+    get:
+      tags:
+        - Content Management
+      summary: Filter recommended countries
+      description: Get recommended countries filtered by various criteria
+      parameters:
+        - name: region
+          in: query
+          description: Filter by region/continent
+          schema:
+            type: string
+            example: "Africa"
+        - name: budget
+          in: query
+          description: Filter by budget range
+          schema:
+            type: string
+            enum: ["low", "medium", "high"]
+            example: "medium"
+        - name: season
+          in: query
+          description: Filter by best travel season
+          schema:
+            type: string
+            example: "winter"
+        - name: activities
+          in: query
+          description: Filter by available activities
+          schema:
+            type: string
+            example: "safari,beach"
+      responses:
+        "200":
+          description: Successfully retrieved filtered countries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Filtered countries retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RecommendedCountry"
+        "400":
+          description: Bad request - invalid filter parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /recommended-countries/{id}:
+    get:
+      tags:
+        - Content Management
+      summary: Get recommended country by ID
+      description: Retrieve a specific recommended country by its ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Recommended country ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: Recommended country retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Recommended country retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/RecommendedCountry"
+        "404":
+          description: Recommended country not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Content Management
+      summary: Update recommended country
+      description: Update an existing recommended country (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Recommended country ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecommendedCountryRequest"
+      responses:
+        "200":
+          description: Recommended country updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Recommended country updated successfully"
+                  data:
+                    $ref: "#/components/schemas/RecommendedCountry"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Recommended country not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Content Management
+      summary: Delete recommended country
+      description: Delete a recommended country (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Recommended country ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: Recommended country deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Recommended country deleted successfully"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Recommended country not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Static Content Endpoints
+  /content/about-us:
+    get:
+      tags:
+        - Content Management
+      summary: Get About Us page content
+      description: Retrieve the About Us page content
+      responses:
+        "200":
+          description: About Us content retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "About Us content retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/StaticContent"
+
+  /content/privacy-policy:
+    get:
+      tags:
+        - Content Management
+      summary: Get Privacy Policy content
+      description: Retrieve the Privacy Policy page content
+      responses:
+        "200":
+          description: Privacy Policy content retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Privacy Policy content retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/StaticContent"
+
+  /content/terms-and-conditions:
+    get:
+      tags:
+        - Content Management
+      summary: Get Terms and Conditions content
+      description: Retrieve the Terms and Conditions page content
+      responses:
+        "200":
+          description: Terms and Conditions content retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Terms and Conditions content retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/StaticContent"
+
+  # Analytics Endpoints
+  /analytics/track:
+    post:
+      tags:
+        - Analytics
+      summary: Track user action
+      description: Track a user action for analytics purposes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackActionRequest"
+      responses:
+        "200":
+          description: Action tracked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Action tracked successfully"
+        "400":
+          description: Bad request - invalid tracking data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analytics/stats:
+    get:
+      tags:
+        - Analytics
+      summary: Get analytics statistics
+      description: Retrieve analytics statistics (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for statistics
+          schema:
+            type: string
+            format: date
+            example: "2025-01-01"
+        - name: endDate
+          in: query
+          description: End date for statistics
+          schema:
+            type: string
+            format: date
+            example: "2025-01-31"
+        - name: metric
+          in: query
+          description: Specific metric to retrieve
+          schema:
+            type: string
+            enum: ["page_views", "user_actions", "bookings", "searches"]
+            example: "page_views"
+      responses:
+        "200":
+          description: Analytics statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Analytics statistics retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/AnalyticsStats"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # Contact and FAQ Endpoints
+  /contact:
+    post:
+      tags:
+        - Contact & Support
+      summary: Submit contact form
+      description: Submit a contact form message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactFormRequest"
+      responses:
+        "200":
+          description: Contact form submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Contact form submitted successfully"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /contact/messages:
+    get:
+      tags:
+        - Contact & Support
+      summary: Get contact messages
+      description: Retrieve all contact form messages (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Number of messages per page
+          schema:
+            type: integer
+            default: 10
+            example: 10
+        - name: status
+          in: query
+          description: Filter by message status
+          schema:
+            type: string
+            enum: ["unread", "read", "replied"]
+            example: "unread"
+      responses:
+        "200":
+          description: Contact messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Contact messages retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      messages:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ContactMessage"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /faq:
+    get:
+      tags:
+        - Contact & Support
+      summary: Get all FAQs
+      description: Retrieve all frequently asked questions
+      responses:
+        "200":
+          description: FAQs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "FAQs retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FAQ"
+    post:
+      tags:
+        - Contact & Support
+      summary: Create FAQ
+      description: Create a new FAQ entry (Admin only)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFAQRequest"
+      responses:
+        "201":
+          description: FAQ created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "FAQ created successfully"
+                  data:
+                    $ref: "#/components/schemas/FAQ"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /faq/{id}:
+    put:
+      tags:
+        - Contact & Support
+      summary: Update FAQ
+      description: Update an existing FAQ entry (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: FAQ ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFAQRequest"
+      responses:
+        "200":
+          description: FAQ updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "FAQ updated successfully"
+                  data:
+                    $ref: "#/components/schemas/FAQ"
+        "400":
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: FAQ not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Contact & Support
+      summary: Delete FAQ
+      description: Delete an FAQ entry (Admin only)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: FAQ ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: FAQ deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "FAQ deleted successfully"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: FAQ not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # General Booking Management Endpoints
+  /bookings:
+    get:
+      tags:
+        - Bookings
+      summary: Get user bookings
+      description: Retrieve all bookings for the authenticated user
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Number of bookings per page
+          schema:
+            type: integer
+            default: 10
+            example: 10
+        - name: type
+          in: query
+          description: Filter by booking type
+          schema:
+            type: string
+            enum: ["flight", "hotel", "ride"]
+            example: "flight"
+        - name: status
+          in: query
+          description: Filter by booking status
+          schema:
+            type: string
+            enum: ["pending", "confirmed", "cancelled", "completed"]
+            example: "confirmed"
+      responses:
+        "200":
+          description: Bookings retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Bookings retrieved successfully"
+                  data:
+                    type: object
+                    properties:
+                      bookings:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Booking"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bookings/{id}:
+    get:
+      tags:
+        - Bookings
+      summary: Get booking by ID
+      description: Retrieve a specific booking by its ID
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Booking ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: Booking retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Booking retrieved successfully"
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Bookings
+      summary: Cancel booking
+      description: Cancel a booking (if cancellation is allowed)
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Booking ID
+          schema:
+            type: string
+            example: "60f5b7b4a1b2c3d4e5f6g7h8"
+      responses:
+        "200":
+          description: Booking cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Booking cancelled successfully"
+                  data:
+                    $ref: "#/components/schemas/Booking"
+        "400":
+          description: Bad request - cancellation not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Booking not found
           content:
             application/json:
               schema:
@@ -706,6 +2019,694 @@ components:
         - multicity: Multi-city trip
         - two_one_ways: Two separate one-way tickets
         - special_offers: Special offer deals
+
+    # Blog Schemas
+    Blog:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h8"
+        title:
+          type: string
+          example: "Top 10 Travel Destinations in 2025"
+        content:
+          type: string
+          example: "Discover amazing travel destinations for your next adventure..."
+        excerpt:
+          type: string
+          example: "A comprehensive guide to the best travel destinations..."
+        author:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "60f5b7b4a1b2c3d4e5f6g7h9"
+            name:
+              type: string
+              example: "John Doe"
+            email:
+              type: string
+              example: "john.doe@melcomtravel.com"
+        category:
+          type: string
+          example: "travel-tips"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["travel", "destinations", "2025"]
+        featuredImage:
+          type: string
+          example: "https://example.com/images/blog-featured.jpg"
+        publishedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        status:
+          type: string
+          enum: ["draft", "published", "archived"]
+          example: "published"
+        viewCount:
+          type: integer
+          example: 1250
+        readTime:
+          type: integer
+          description: Estimated reading time in minutes
+          example: 8
+
+    CreateBlogRequest:
+      type: object
+      required:
+        - title
+        - content
+        - category
+      properties:
+        title:
+          type: string
+          example: "Top 10 Travel Destinations in 2025"
+        content:
+          type: string
+          example: "Discover amazing travel destinations for your next adventure..."
+        excerpt:
+          type: string
+          example: "A comprehensive guide to the best travel destinations..."
+        category:
+          type: string
+          example: "travel-tips"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["travel", "destinations", "2025"]
+        featuredImage:
+          type: string
+          example: "https://example.com/images/blog-featured.jpg"
+        status:
+          type: string
+          enum: ["draft", "published"]
+          default: "draft"
+          example: "published"
+
+    UpdateBlogRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Updated: Top 10 Travel Destinations in 2025"
+        content:
+          type: string
+          example: "Updated content with amazing travel destinations..."
+        excerpt:
+          type: string
+          example: "Updated comprehensive guide to the best travel destinations..."
+        category:
+          type: string
+          example: "travel-tips"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["travel", "destinations", "2025", "updated"]
+        featuredImage:
+          type: string
+          example: "https://example.com/images/blog-featured-updated.jpg"
+        status:
+          type: string
+          enum: ["draft", "published", "archived"]
+          example: "published"
+
+    # Recommended Country Schemas
+    RecommendedCountry:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h8"
+        name:
+          type: string
+          example: "Ghana"
+        code:
+          type: string
+          example: "GH"
+        region:
+          type: string
+          example: "West Africa"
+        continent:
+          type: string
+          example: "Africa"
+        description:
+          type: string
+          example: "Experience the rich culture and beautiful landscapes of Ghana..."
+        highlights:
+          type: array
+          items:
+            type: string
+          example: ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris", "Historic forts"]
+        bestTimeToVisit:
+          type: string
+          example: "November to March"
+        averageBudget:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+            range:
+              type: string
+              example: "medium"
+            dailyBudget:
+              type: object
+              properties:
+                low:
+                  type: number
+                  example: 50
+                medium:
+                  type: number
+                  example: 100
+                high:
+                  type: number
+                  example: 200
+        popularActivities:
+          type: array
+          items:
+            type: string
+          example: ["Cultural tours", "Beach activities", "Wildlife viewing", "Historical sites"]
+        featuredImage:
+          type: string
+          example: "https://example.com/images/ghana-featured.jpg"
+        gallery:
+          type: array
+          items:
+            type: string
+          example: ["https://example.com/images/ghana-1.jpg", "https://example.com/images/ghana-2.jpg"]
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          example: 4.5
+        reviewCount:
+          type: integer
+          example: 342
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+
+    CreateRecommendedCountryRequest:
+      type: object
+      required:
+        - name
+        - code
+        - region
+        - description
+      properties:
+        name:
+          type: string
+          example: "Ghana"
+        code:
+          type: string
+          example: "GH"
+        region:
+          type: string
+          example: "West Africa"
+        continent:
+          type: string
+          example: "Africa"
+        description:
+          type: string
+          example: "Experience the rich culture and beautiful landscapes of Ghana..."
+        highlights:
+          type: array
+          items:
+            type: string
+          example: ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris"]
+        bestTimeToVisit:
+          type: string
+          example: "November to March"
+        averageBudget:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+            range:
+              type: string
+              enum: ["low", "medium", "high"]
+              example: "medium"
+            dailyBudget:
+              type: object
+              properties:
+                low:
+                  type: number
+                  example: 50
+                medium:
+                  type: number
+                  example: 100
+                high:
+                  type: number
+                  example: 200
+        popularActivities:
+          type: array
+          items:
+            type: string
+          example: ["Cultural tours", "Beach activities", "Wildlife viewing"]
+        featuredImage:
+          type: string
+          example: "https://example.com/images/ghana-featured.jpg"
+        gallery:
+          type: array
+          items:
+            type: string
+          example: ["https://example.com/images/ghana-1.jpg", "https://example.com/images/ghana-2.jpg"]
+
+    UpdateRecommendedCountryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Ghana"
+        code:
+          type: string
+          example: "GH"
+        region:
+          type: string
+          example: "West Africa"
+        continent:
+          type: string
+          example: "Africa"
+        description:
+          type: string
+          example: "Updated: Experience the rich culture and beautiful landscapes of Ghana..."
+        highlights:
+          type: array
+          items:
+            type: string
+          example: ["Rich cultural heritage", "Beautiful beaches", "Wildlife safaris", "Historic forts"]
+        bestTimeToVisit:
+          type: string
+          example: "November to March"
+        averageBudget:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+            range:
+              type: string
+              enum: ["low", "medium", "high"]
+              example: "medium"
+            dailyBudget:
+              type: object
+              properties:
+                low:
+                  type: number
+                  example: 50
+                medium:
+                  type: number
+                  example: 100
+                high:
+                  type: number
+                  example: 200
+        popularActivities:
+          type: array
+          items:
+            type: string
+          example: ["Cultural tours", "Beach activities", "Wildlife viewing", "Historical sites"]
+        featuredImage:
+          type: string
+          example: "https://example.com/images/ghana-featured.jpg"
+        gallery:
+          type: array
+          items:
+            type: string
+          example: ["https://example.com/images/ghana-1.jpg", "https://example.com/images/ghana-2.jpg"]
+
+    # Static Content Schemas
+    StaticContent:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "about-us"
+        title:
+          type: string
+          example: "About Melcom Travel & Tours"
+        content:
+          type: string
+          example: "We are a leading travel agency dedicated to providing exceptional travel experiences..."
+        lastUpdated:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        version:
+          type: string
+          example: "1.2"
+
+    # Analytics Schemas
+    TrackActionRequest:
+      type: object
+      required:
+        - action
+        - category
+      properties:
+        action:
+          type: string
+          example: "search_flight"
+        category:
+          type: string
+          example: "user_interaction"
+        label:
+          type: string
+          example: "search_form"
+        value:
+          type: number
+          example: 1
+        userId:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h8"
+        sessionId:
+          type: string
+          example: "session_123456789"
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            origin: "ACC"
+            destination: "LHR"
+            page_url: "/flights/search"
+            user_agent: "Mozilla/5.0..."
+
+    AnalyticsStats:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+              example: "2025-01-01"
+            endDate:
+              type: string
+              format: date
+              example: "2025-01-31"
+        metrics:
+          type: object
+          properties:
+            totalPageViews:
+              type: integer
+              example: 15420
+            uniqueVisitors:
+              type: integer
+              example: 8750
+            totalActions:
+              type: integer
+              example: 45230
+            popularPages:
+              type: array
+              items:
+                type: object
+                properties:
+                  page:
+                    type: string
+                    example: "/flights/search"
+                  views:
+                    type: integer
+                    example: 3450
+            topActions:
+              type: array
+              items:
+                type: object
+                properties:
+                  action:
+                    type: string
+                    example: "search_flight"
+                  count:
+                    type: integer
+                    example: 1250
+            conversionRate:
+              type: number
+              format: float
+              example: 3.2
+            averageSessionDuration:
+              type: number
+              description: Average session duration in minutes
+              example: 8.5
+
+    # Contact & Support Schemas
+    ContactFormRequest:
+      type: object
+      required:
+        - name
+        - email
+        - subject
+        - message
+      properties:
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john.doe@example.com"
+        phone:
+          type: string
+          example: "+233 20 123 4567"
+        subject:
+          type: string
+          example: "Flight Booking Inquiry"
+        message:
+          type: string
+          example: "I would like to inquire about booking a flight from Accra to London..."
+        category:
+          type: string
+          enum: ["general", "booking", "complaint", "suggestion", "technical"]
+          example: "booking"
+
+    ContactMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h8"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john.doe@example.com"
+        phone:
+          type: string
+          example: "+233 20 123 4567"
+        subject:
+          type: string
+          example: "Flight Booking Inquiry"
+        message:
+          type: string
+          example: "I would like to inquire about booking a flight from Accra to London..."
+        category:
+          type: string
+          example: "booking"
+        status:
+          type: string
+          enum: ["unread", "read", "replied", "closed"]
+          example: "unread"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2025-01-15T14:30:00Z"
+        response:
+          type: string
+          nullable: true
+          example: "Thank you for your inquiry. We will get back to you shortly..."
+
+    FAQ:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h8"
+        question:
+          type: string
+          example: "How can I cancel my flight booking?"
+        answer:
+          type: string
+          example: "You can cancel your flight booking by logging into your account and selecting the booking you wish to cancel..."
+        category:
+          type: string
+          example: "booking"
+        order:
+          type: integer
+          description: Display order for sorting FAQs
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+
+    CreateFAQRequest:
+      type: object
+      required:
+        - question
+        - answer
+        - category
+      properties:
+        question:
+          type: string
+          example: "How can I cancel my flight booking?"
+        answer:
+          type: string
+          example: "You can cancel your flight booking by logging into your account..."
+        category:
+          type: string
+          example: "booking"
+        order:
+          type: integer
+          default: 0
+          example: 1
+        isActive:
+          type: boolean
+          default: true
+          example: true
+
+    UpdateFAQRequest:
+      type: object
+      properties:
+        question:
+          type: string
+          example: "How can I cancel or modify my flight booking?"
+        answer:
+          type: string
+          example: "Updated: You can cancel or modify your flight booking by logging into your account..."
+        category:
+          type: string
+          example: "booking"
+        order:
+          type: integer
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+
+    # Booking Management Schemas
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h8"
+        type:
+          type: string
+          enum: ["flight", "hotel", "ride"]
+          example: "flight"
+        userId:
+          type: string
+          example: "60f5b7b4a1b2c3d4e5f6g7h9"
+        bookingReference:
+          type: string
+          example: "MELCOM-FL-2025-001234"
+        status:
+          type: string
+          enum: ["pending", "confirmed", "cancelled", "completed", "expired"]
+          example: "confirmed"
+        details:
+          type: object
+          description: Booking-specific details (varies by type)
+          additionalProperties: true
+          example:
+            origin: "ACC"
+            destination: "LHR"
+            departureDate: "2025-11-15"
+            passengerCount: 2
+        totalAmount:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+            amount:
+              type: number
+              format: float
+              example: 1250.00
+        paymentStatus:
+          type: string
+          enum: ["pending", "paid", "refunded", "failed"]
+          example: "paid"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-15T10:30:00Z"
+        expiryDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2025-11-15T23:59:59Z"
+        cancellationPolicy:
+          type: object
+          properties:
+            cancellable:
+              type: boolean
+              example: true
+            refundable:
+              type: boolean
+              example: true
+            cancellationFee:
+              type: number
+              format: float
+              example: 50.00
+            deadlineDate:
+              type: string
+              format: date-time
+              example: "2025-11-10T23:59:59Z"
+
+    # Utility Schemas
+    Pagination:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+          example: 1
+        totalPages:
+          type: integer
+          example: 5
+        totalItems:
+          type: integer
+          example: 48
+        itemsPerPage:
+          type: integer
+          example: 10
+        hasNextPage:
+          type: boolean
+          example: true
+        hasPreviousPage:
+          type: boolean
+          example: false
 
   securitySchemes:
     ApiKeyAuth:

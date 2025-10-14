@@ -41,6 +41,131 @@ export class ContentController {
         }
     }
 
+    // Recommended Countries with filtering
+    async getRecommendedCountriesByFilter(req: Request, res: Response) {
+        try {
+            const { country } = req.query;
+            
+            let filter: any = { status: 'ACTIVE' };
+            if (country) {
+                filter.country = { $regex: country, $options: 'i' }; // Case-insensitive search
+            }
+            
+            const countries = await RecommendedCountries.find(filter);
+            const countriesDTO = countries.map(country => new RecommendedCountriesDTO(country));
+            
+            res.status(200).json({
+                success: true,
+                data: countriesDTO,
+                message: country ? `Recommended countries for '${country}' retrieved successfully` : 'All recommended countries retrieved successfully',
+                filter: { country: country || null },
+                totalResults: countriesDTO.length
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving recommended countries',
+                error: error.message
+            });
+        }
+    }
+
+    // Create Recommended Country
+    async createRecommendedCountry(req: Request, res: Response) {
+        try {
+            const { image, orientation, country, numberOfDestinations } = req.body;
+            
+            const newCountry = new RecommendedCountries({
+                image,
+                orientation,
+                country,
+                numberOfDestinations,
+                status: 'ACTIVE'
+            });
+
+            const savedCountry = await newCountry.save();
+            const countryDTO = new RecommendedCountriesDTO(savedCountry);
+            
+            res.status(201).json({
+                success: true,
+                data: countryDTO,
+                message: 'Recommended country created successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error creating recommended country',
+                error: error.message
+            });
+        }
+    }
+
+    // Update Recommended Country
+    async updateRecommendedCountry(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            const updateData = req.body;
+            
+            const updatedCountry = await RecommendedCountries.findByIdAndUpdate(
+                id, 
+                { ...updateData, updatedAt: new Date() }, 
+                { new: true }
+            );
+
+            if (!updatedCountry) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Recommended country not found'
+                });
+            }
+
+            const countryDTO = new RecommendedCountriesDTO(updatedCountry);
+            
+            res.status(200).json({
+                success: true,
+                data: countryDTO,
+                message: 'Recommended country updated successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error updating recommended country',
+                error: error.message
+            });
+        }
+    }
+
+    // Delete Recommended Country
+    async deleteRecommendedCountry(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            
+            const deletedCountry = await RecommendedCountries.findByIdAndUpdate(
+                id, 
+                { status: 'INACTIVE' }, 
+                { new: true }
+            );
+
+            if (!deletedCountry) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Recommended country not found'
+                });
+            }
+            
+            res.status(200).json({
+                success: true,
+                message: 'Recommended country deleted successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error deleting recommended country',
+                error: error.message
+            });
+        }
+    }
+
     // Terms and Conditions
     async getTermsAndConditions(req: Request, res: Response) {
         try {
