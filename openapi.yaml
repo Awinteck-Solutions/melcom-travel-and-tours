@@ -1,0 +1,717 @@
+openapi: 3.1.0
+info:
+  title: Melcom Travel & Tours Flight API
+  description: |
+    A comprehensive flight booking API integrated with GOL (Golibe) API for real-time flight search, deals, and booking management.
+    
+    This API provides:
+    - Real-time flight search (one-way, return, multi-city)
+    - Flight deals and promotional offers
+    - Airport search functionality
+    - Flight booking management
+    - Integration with Melcom Golibe platform
+    
+    **Base URL:** `http://localhost:4000`
+    
+    **Authentication:** GOL API credentials are configured server-side.
+  version: 1.0.0
+  contact:
+    name: Awinteck Solutions
+    email: info@awinteck.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:4000
+    description: Development server
+  - url: https://api.melcomtravel.com
+    description: Production server
+
+tags:
+  - name: Flight Search
+    description: Flight search operations (one-way, return, multi-city)
+  - name: Flight Deals
+    description: Flight deals and promotional offers
+  - name: Flight Booking
+    description: Flight booking management
+  - name: Utilities
+    description: Airport search and other utility endpoints
+
+paths:
+  /:
+    get:
+      summary: API Welcome Message
+      description: Welcome endpoint with API information and available endpoints
+      tags:
+        - Utilities
+      responses:
+        '200':
+          description: Welcome message with API documentation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Welcome to Melcom Travel & Tours API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  endpoints:
+                    type: object
+                    properties:
+                      flights:
+                        type: array
+                        items:
+                          type: string
+                      deals:
+                        type: array
+                        items:
+                          type: string
+                      utilities:
+                        type: array
+                        items:
+                          type: string
+
+  /flights/search:
+    post:
+      summary: Search for flights
+      description: |
+        Universal flight search endpoint supporting:
+        - One-way flights
+        - Return flights  
+        - Multi-city flights
+        
+        Uses real-time data from GOL API integrated with Melcom Golibe platform.
+      tags:
+        - Flight Search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/OneWayFlightSearch'
+                - $ref: '#/components/schemas/ReturnFlightSearch'
+                - $ref: '#/components/schemas/MultiCityFlightSearch'
+            examples:
+              oneWay:
+                summary: One-way flight search
+                value:
+                  origin: "ACC"
+                  destination: "ABJ"
+                  departureDate: "2025-11-15"
+                  passengers: "ADT"
+                  tripType: "oneway"
+              return:
+                summary: Return flight search
+                value:
+                  origin: "ACC"
+                  destination: "ABJ"
+                  departureDate: "2025-11-15"
+                  returnDate: "2025-11-20"
+                  passengers: "ADT"
+                  tripType: "return"
+              multiCity:
+                summary: Multi-city flight search
+                value:
+                  origin: "ACC"
+                  destinations: "ABJ,LFW"
+                  departureDates: "2025-11-15,2025-11-18"
+                  passengers: "ADT"
+                  tripType: "multicity"
+      responses:
+        '200':
+          description: Flight search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightSearchResponse'
+        '400':
+          description: Bad request - missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flight-deals:
+    get:
+      summary: Get flight deals
+      description: Get promotional flight deals and special offers from GOL API
+      tags:
+        - Flight Deals
+      parameters:
+        - name: category
+          in: query
+          description: Filter deals by category
+          required: false
+          schema:
+            type: string
+            example: "promotional"
+      responses:
+        '200':
+          description: List of flight deals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightDealsResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flight-deals/{id}:
+    get:
+      summary: Get flight deal by ID
+      description: Get specific flight deal details by ID
+      tags:
+        - Flight Deals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Flight deal ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Flight deal details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightDealResponse'
+        '404':
+          description: Flight deal not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flight-deals-categories:
+    get:
+      summary: Get flight deal categories
+      description: Get available flight deal categories
+      tags:
+        - Flight Deals
+      responses:
+        '200':
+          description: List of flight deal categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        category:
+                          type: string
+                        description:
+                          type: string
+
+  /flight-bookings:
+    post:
+      summary: Create flight booking
+      description: Create a new flight booking
+      tags:
+        - Flight Booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlightBookingRequest'
+      responses:
+        '201':
+          description: Booking created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightBookingResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /flight-bookings/{id}:
+    get:
+      summary: Get flight booking by ID
+      description: Get flight booking details by ID
+      tags:
+        - Flight Booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Flight booking ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Flight booking details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightBookingResponse'
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /airports:
+    get:
+      summary: Search airports
+      description: Search for airports by name, city, or IATA code
+      tags:
+        - Utilities
+      parameters:
+        - name: search
+          in: query
+          required: true
+          description: Search term (airport name, city, or IATA code)
+          schema:
+            type: string
+            example: "london"
+      responses:
+        '200':
+          description: List of matching airports
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AirportSearchResponse'
+        '400':
+          description: Bad request - search parameter required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # Request Schemas
+    OneWayFlightSearch:
+      type: object
+      required:
+        - origin
+        - destination
+        - departureDate
+        - passengers
+        - tripType
+      properties:
+        origin:
+          type: string
+          description: Origin airport IATA code
+          example: "ACC"
+        destination:
+          type: string
+          description: Destination airport IATA code
+          example: "ABJ"
+        departureDate:
+          type: string
+          format: date
+          description: Departure date (YYYY-MM-DD)
+          example: "2025-11-15"
+        passengers:
+          $ref: '#/components/schemas/PassengerType'
+        tripType:
+          type: string
+          enum: ["oneway"]
+          example: "oneway"
+        cabin:
+          $ref: '#/components/schemas/CabinClass'
+
+    ReturnFlightSearch:
+      type: object
+      required:
+        - origin
+        - destination
+        - departureDate
+        - returnDate
+        - passengers
+        - tripType
+      properties:
+        origin:
+          type: string
+          description: Origin airport IATA code
+          example: "ACC"
+        destination:
+          type: string
+          description: Destination airport IATA code
+          example: "ABJ"
+        departureDate:
+          type: string
+          format: date
+          description: Departure date (YYYY-MM-DD)
+          example: "2025-11-15"
+        returnDate:
+          type: string
+          format: date
+          description: Return date (YYYY-MM-DD)
+          example: "2025-11-20"
+        passengers:
+          $ref: '#/components/schemas/PassengerType'
+        tripType:
+          type: string
+          enum: ["return"]
+          example: "return"
+        cabin:
+          $ref: '#/components/schemas/CabinClass'
+
+    MultiCityFlightSearch:
+      type: object
+      required:
+        - origin
+        - destinations
+        - departureDates
+        - passengers
+        - tripType
+      properties:
+        origin:
+          type: string
+          description: Origin airport IATA code
+          example: "ACC"
+        destinations:
+          type: string
+          description: Comma-separated destination airport IATA codes
+          example: "ABJ,LFW"
+        departureDates:
+          type: string
+          description: Comma-separated departure dates (YYYY-MM-DD)
+          example: "2025-11-15,2025-11-18"
+        passengers:
+          $ref: '#/components/schemas/PassengerType'
+        tripType:
+          type: string
+          enum: ["multicity"]
+          example: "multicity"
+        cabin:
+          $ref: '#/components/schemas/CabinClass'
+
+    FlightBookingRequest:
+      type: object
+      required:
+        - flightDetails
+        - passengerInfo
+        - contactInfo
+      properties:
+        flightDetails:
+          type: object
+          properties:
+            flightKey:
+              type: string
+              description: Flight option key from search results
+            pricingKey:
+              type: string
+              description: Pricing detail key from search results
+        passengerInfo:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                $ref: '#/components/schemas/PassengerType'
+              title:
+                type: string
+                enum: ["Mr", "Mrs", "Ms", "Miss"]
+              firstName:
+                type: string
+              lastName:
+                type: string
+              dateOfBirth:
+                type: string
+                format: date
+              nationality:
+                type: string
+        contactInfo:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            address:
+              type: object
+              properties:
+                street:
+                  type: string
+                city:
+                  type: string
+                country:
+                  type: string
+                postalCode:
+                  type: string
+
+    # Response Schemas
+    FlightSearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "oneway flight search completed successfully"
+        data:
+          type: object
+          description: GOL API response data containing flight offers, pricing, and itinerary details
+          properties:
+            GolApi:
+              type: object
+              properties:
+                SecurityContent:
+                  type: string
+                PassiveSessionId:
+                  type: string
+                Settings:
+                  type: object
+                ResponseDetail:
+                  type: object
+                  properties:
+                    SearchFlightsExtendedResponse_2:
+                      type: object
+                      properties:
+                        FlightOffers:
+                          type: array
+                          items:
+                            type: object
+                        BestPriceOffers:
+                          type: array
+                          items:
+                            type: object
+        search_params:
+          type: object
+          description: Echo of search parameters used
+
+    FlightDealsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Flight deals retrieved successfully"
+        data:
+          type: object
+          description: GOL API response containing flight deals
+          properties:
+            GolApi:
+              type: object
+              properties:
+                ResponseDetail:
+                  type: object
+                  properties:
+                    GetFlightDealsResponse_2:
+                      type: object
+                      properties:
+                        FlightDeals:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              Id:
+                                type: string
+                              Origin:
+                                type: string
+                              Destination:
+                                type: string
+                              Price:
+                                type: string
+                              Currency:
+                                type: string
+
+    FlightDealResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Specific flight deal details
+
+    FlightBookingResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Booking created successfully"
+        data:
+          type: object
+          properties:
+            bookingId:
+              type: string
+            status:
+              type: string
+              enum: ["confirmed", "pending", "cancelled"]
+            totalPrice:
+              type: number
+            currency:
+              type: string
+            flightDetails:
+              type: object
+            passengerInfo:
+              type: array
+              items:
+                type: object
+
+    AirportSearchResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Airports retrieved successfully"
+        data:
+          type: object
+          description: GOL API response containing airport information
+          properties:
+            GolApi:
+              type: object
+              properties:
+                ResponseDetail:
+                  type: object
+                  properties:
+                    GetAirportsResponse_2:
+                      type: object
+                      properties:
+                        Airports:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              Code:
+                                type: string
+                                example: "LHR"
+                              Name:
+                                type: string
+                                example: "London Heathrow"
+                              City:
+                                type: string
+                                example: "London"
+                              Country:
+                                type: string
+                                example: "GB"
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error description"
+        error:
+          type: string
+          description: Detailed error information
+
+    # Enum Schemas
+    PassengerType:
+      type: string
+      enum:
+        - "ADT"  # Adults (25-59)
+        - "CHD"  # Children (2-11 or up to 18)
+        - "INF"  # Infants (Up to 2 years)
+        - "YTH"  # Youth (12-24)
+        - "YCD"  # Seniors (60+)
+      example: "ADT"
+      description: |
+        Passenger type codes:
+        - ADT: Adults (25-59)
+        - CHD: Children (2-11 or up to 18)
+        - INF: Infants (Up to 2 years)
+        - YTH: Youth (12-24)
+        - YCD: Seniors (60+)
+
+    CabinClass:
+      type: string
+      enum:
+        - "ECO"  # Economy class
+        - "PRE"  # Premium economy class
+        - "BUS"  # Business class
+        - "1ST"  # First class
+      example: "ECO"
+      description: |
+        Cabin class codes:
+        - ECO: Economy class
+        - PRE: Premium economy class
+        - BUS: Business class
+        - 1ST: First class
+
+    TripType:
+      type: string
+      enum:
+        - "oneway"
+        - "return"
+        - "multicity"
+        - "two_one_ways"
+        - "special_offers"
+      example: "oneway"
+      description: |
+        Trip type options:
+        - oneway: One way trip
+        - return: Return trip
+        - multicity: Multi-city trip
+        - two_one_ways: Two separate one-way tickets
+        - special_offers: Special offer deals
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (if required)
+
+# Security (if authentication is needed)
+# security:
+#   - ApiKeyAuth: []
