@@ -55,7 +55,7 @@ app.get("/", (req: Request, res: Response) => {
 connectToDatabase()
   .then(() => {
     app.listen(process.env.PORT, () =>
-      console.log("Server running on port " + process.env.PORT, 'v1.0.0')
+      console.log("Server running on port " + process.env.PORT, 'version: v1.0.0')
     );
   })
   .catch((error) => {
