@@ -44,6 +44,17 @@ contentRoutes.get(
   contentController.getContactInfo.bind(contentController)
 );
 
+contentRoutes.post(
+  "/contact-info",
+  contentController.postContactInfo.bind(contentController)
+);
+
+// update contact info
+contentRoutes.put(
+  "/contact-info/:id",
+  contentController.updateContactInfo.bind(contentController)
+);
+
 // Contact form routes
 contentRoutes.post(
   "/contact-us-form",

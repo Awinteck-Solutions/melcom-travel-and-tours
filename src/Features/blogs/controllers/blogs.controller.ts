@@ -39,6 +39,10 @@ export class BlogsController {
                 });
             }
 
+            // get similar blogs except the current blog 
+            const similarBlogs = await Blogs.find({ category: blog.category, _id: { $ne: id } }).populate('category', 'name').limit(3);
+            const similarBlogsDTO = similarBlogs.map(blog => new BlogsDTO(blog));
+
             // Increment views
             await Blogs.findByIdAndUpdate(id, { $inc: { views: 1 } });
             
@@ -47,6 +51,7 @@ export class BlogsController {
             res.status(200).json({
                 success: true,
                 data: blogDTO,
+                similar: similarBlogsDTO,
                 message: 'Blog retrieved successfully'
             });
         } catch (error) {

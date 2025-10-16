@@ -1,0 +1,1452 @@
+{
+  "info": {
+    "name": "Melcom Travel & Tours API - Complete",
+    "description": "Complete API collection for Melcom Travel & Tours application including all endpoints for flights, auth, blogs, content, bookings, and analytics.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"John\",\n  \"lastname\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"phoneNumber\": \"+233123456789\",\n  \"gender\": \"male\",\n  \"nationality\": \"Ghanaian\",\n  \"dateOfBirth\": \"1990-01-01\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('authToken', response.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Google Authentication",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"googleToken\": \"google_oauth_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "google"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forget Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forget-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forget-password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"oldpassword123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "firstname",
+                  "value": "John",
+                  "type": "text"
+                },
+                {
+                  "key": "lastname",
+                  "value": "Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "phoneNumber",
+                  "value": "+233123456789",
+                  "type": "text"
+                },
+                {
+                  "key": "gender",
+                  "value": "male",
+                  "type": "text"
+                },
+                {
+                  "key": "nationality",
+                  "value": "Ghanaian",
+                  "type": "text"
+                },
+                {
+                  "key": "profileImage",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/notification-alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "notification-alerts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Notification Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"read\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/notification-alerts/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "notification-alerts", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "notification_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"John\",\n  \"lastname\": \"Doe\",\n  \"phoneNumber\": \"+233123456789\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/update-user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "update-user", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/delete-user/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "delete-user", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flights",
+      "item": [
+        {
+          "name": "Search Flights",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"ACC\",\n  \"destination\": \"LHR\",\n  \"departureDate\": \"2024-12-25\",\n  \"returnDate\": \"2025-01-05\",\n  \"adults\": 2,\n  \"children\": 1,\n  \"infants\": 0,\n  \"cabin\": \"ECO\",\n  \"tripType\": \"return\",\n  \"directFlightsOnly\": false,\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Multi-City Flights",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tripType\": \"multicity\",\n  \"flightSteps\": [\n    {\n      \"origin\": \"ACC\",\n      \"destination\": \"LHR\",\n      \"date\": \"2024-12-25\"\n    },\n    {\n      \"origin\": \"LHR\",\n      \"destination\": \"CDG\",\n      \"date\": \"2024-12-30\"\n    },\n    {\n      \"origin\": \"CDG\",\n      \"destination\": \"ACC\",\n      \"date\": \"2025-01-05\"\n    }\n  ],\n  \"adults\": 2,\n  \"children\": 0,\n  \"cabin\": \"ECO\",\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Deals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flight-deals",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-deals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Deal by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flight-deals/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-deals", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "deal_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Deal Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flight-deals-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-deals-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Flight Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Flight Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"offer_123\",\n  \"passengers\": [\n    {\n      \"title\": \"Mr\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"dateOfBirth\": \"1990-01-01\",\n      \"nationality\": \"Ghanaian\",\n      \"passengerType\": \"ADT\",\n      \"passportNumber\": \"G12345678\",\n      \"passportExpiry\": \"2030-01-01\",\n      \"passportCountry\": \"Ghana\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"+233123456789\"\n    }\n  ],\n  \"contactEmail\": \"john.doe@example.com\",\n  \"contactPhone\": \"+233123456789\",\n  \"contactAddress\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Accra\",\n    \"country\": \"Ghana\",\n    \"postalCode\": \"00233\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Airports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airports",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Blogs",
+      "item": [
+        {
+          "name": "Get All Blogs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blogs",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blog by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blogs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "blog_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Amazing Travel Destinations\",\n  \"content\": \"This is the full blog content...\",\n  \"excerpt\": \"A brief excerpt of the blog post\",\n  \"category\": \"Travel Tips\",\n  \"author\": \"John Doe\",\n  \"imageUrl\": \"https://example.com/image.jpg\",\n  \"tags\": [\"travel\", \"destinations\", \"tips\"],\n  \"readTime\": 5,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Blog",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Blog Title\",\n  \"content\": \"Updated blog content...\",\n  \"excerpt\": \"Updated excerpt\",\n  \"category\": \"Travel Tips\",\n  \"author\": \"John Doe\",\n  \"tags\": [\"travel\", \"destinations\", \"tips\", \"updated\"],\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "blog_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Blog",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blogs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "blog_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blog Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Travel Tips\",\n  \"description\": \"Tips and advice for travelers\",\n  \"imageUrl\": \"https://example.com/category-image.jpg\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Blog Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Travel Tips\",\n  \"description\": \"Updated description for travel tips\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Blog Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Content Management",
+      "item": [
+        {
+          "name": "Get Recommended Countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Recommended Countries by Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country?filter=popular",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country"],
+              "query": [
+                {
+                  "key": "filter",
+                  "value": "popular"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Recommended Country",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghana\",\n  \"description\": \"Beautiful country in West Africa\",\n  \"imageUrl\": \"https://example.com/ghana.jpg\",\n  \"currency\": \"GHS\",\n  \"language\": \"English\",\n  \"bestTimeToVisit\": \"November to March\",\n  \"averageTemperature\": \"26-30°C\",\n  \"timeZone\": \"GMT+0\",\n  \"popularDestinations\": [\"Accra\", \"Kumasi\", \"Cape Coast\"],\n  \"visaRequirements\": \"Visa on arrival for most countries\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Recommended Country",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghana - Updated\",\n  \"description\": \"Updated description for Ghana\",\n  \"popularDestinations\": [\"Accra\", \"Kumasi\", \"Cape Coast\", \"Tamale\"],\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "country_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Recommended Country",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "country_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Terms and Conditions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/terms-and-conditions",
+              "host": ["{{baseUrl}}"],
+              "path": ["terms-and-conditions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Privacy Policy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/privacy-policy",
+              "host": ["{{baseUrl}}"],
+              "path": ["privacy-policy"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cookies Policy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cookies",
+              "host": ["{{baseUrl}}"],
+              "path": ["cookies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-info"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Contact Form",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+233123456789\",\n  \"subject\": \"Travel Inquiry\",\n  \"message\": \"I would like to know more about your travel packages\",\n  \"inquiryType\": \"general\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Form Submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Contact Form Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"responded\",\n  \"response\": \"Thank you for your inquiry. We will get back to you soon.\",\n  \"respondedBy\": \"admin_user_id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "form_submission_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inquiry Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/inquiry-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiry-types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get FAQs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What documents do I need for international travel?\",\n  \"answer\": \"You will need a valid passport and may require a visa depending on your destination.\",\n  \"category\": \"Travel Documents\",\n  \"order\": 1,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update FAQ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Updated: What documents do I need for international travel?\",\n  \"answer\": \"Updated answer with more detailed information about travel documents.\",\n  \"category\": \"Travel Documents\",\n  \"order\": 1,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "faq_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "faq_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingType\": \"flight\",\n  \"flightDetails\": {\n    \"departureCity\": \"Accra\",\n    \"arrivalCity\": \"London\",\n    \"departureDate\": \"2024-12-25T10:00:00Z\",\n    \"returnDate\": \"2025-01-05T15:00:00Z\",\n    \"airline\": \"British Airways\",\n    \"flightNumber\": \"BA123\",\n    \"passengers\": [\n      {\n        \"title\": \"Mr\",\n        \"firstName\": \"John\",\n        \"lastName\": \"Doe\",\n        \"dateOfBirth\": \"1990-01-01\",\n        \"passport\": \"G12345678\",\n        \"nationality\": \"Ghanaian\"\n      }\n    ]\n  },\n  \"contactInfo\": {\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+233123456789\"\n  },\n  \"totalAmount\": 1500.00,\n  \"currency\": \"GHS\",\n  \"paymentMethod\": \"card\",\n  \"status\": \"pending\",\n  \"paymentStatus\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"paymentStatus\": \"paid\",\n  \"paymentReference\": \"PAY_REF_123\",\n  \"confirmationDate\": \"2024-12-01T10:00:00Z\",\n  \"notes\": \"Booking confirmed and payment received\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Customer requested cancellation\",\n  \"notes\": \"Full refund processed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "cancel"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmationDate\": \"2024-12-01T10:00:00Z\",\n  \"notes\": \"Booking confirmed by admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "confirm"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"paid\",\n  \"paymentReference\": \"PAY_REF_123\",\n  \"notes\": \"Payment confirmed via bank transfer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/payment-status",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "payment-status"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookings Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Amount Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-amount",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-amount"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cancellations Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-cancelations",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-cancelations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Info Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-contact-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-contact-info"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test Routes",
+      "item": [
+        {
+          "name": "Test Accounts Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["test"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

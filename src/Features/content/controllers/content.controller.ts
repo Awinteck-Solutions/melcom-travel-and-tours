@@ -288,6 +288,52 @@ export class ContentController {
     }
   }
 
+  
+  async postContactInfo(req: Request, res: Response) {
+    try {
+      const contact = new ContactInfo(req.body);
+      const savedContact = await contact.save();
+      const contactDTO = new ContactInfoDTO(savedContact);
+      res.status(201).json({
+        success: true,
+        data: contactDTO,
+        message: "Contact information posted successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error posting contact information",
+        error: error.message,
+      });
+    }
+  }
+
+  async updateContactInfo(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const updatedContact = await ContactInfo.findByIdAndUpdate(id, updateData, { new: true });
+      if (!updatedContact) {
+        return res.status(404).json({
+          success: false,
+          message: "Contact information not found",
+        });
+      }
+      const contactDTO = new ContactInfoDTO(updatedContact);
+      res.status(200).json({
+        success: true,
+        data: contactDTO,
+        message: "Contact information updated successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error updating contact information",
+        error: error.message,
+      });
+    }
+  }
+
   // Contact Us Form
   async submitContactForm(req: Request, res: Response) {
     try {

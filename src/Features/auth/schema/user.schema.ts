@@ -8,8 +8,20 @@ const userSchema = new Schema({
     firstname: {type: String, default: null},
     lastname: {type: String, default: null},
     image: {type: String, default: null},
-    otp: { type: String, required: true },
-    googleId: { type: String, default: null, unique: true, sparse: true },
+    otp: { type: String, required: false },
+    role: { type: String, default: "USER" },
+    googleId: { type: String, unique: true, sparse: true },
+    notifications: {
+        type: Object,
+        default: {
+            flightAlerts: true,
+            ridesAlerts: false,
+            hotelAlerts: false,
+            promotions: true,
+            accountSecurity: true,
+            emails: true,
+        },
+    },
     status: {
         type: String,
         enum : ['ACTIVE','DEACTIVE'],

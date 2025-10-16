@@ -7,12 +7,18 @@ import { AuthController } from "../controllers/auth.controller";
 import { authentification } from "../../../middlewares/authentication.middleware";
 import { Notification } from "../enums/notification.enum";
 import { upload } from "../../../helpers/uploader";
+import { notification } from "../../../middlewares/notification.middleware";
+import User from "../schema/user.schema";
 
 
 const Router = express.Router();
 
 // ----------------------------------------- AUTH ROUTES ---------------------------------------------------
-
+interface MulterRequest extends Request {
+    file?: Express.Multer.File;
+    files?: Express.Multer.File[];
+}
+  
 // AUTHENTICATION
 Router.post("/register",
     (req: Request, res: Response) => { 
@@ -33,8 +39,17 @@ Router.post("/google",
 );
 
 Router.post("/forget-password",
+    notification(Notification.FORGOT_PASSWORD, User),
     (req: Request, res: Response) => { 
         AuthController.forgetPassword(req, res)
+    }
+);
+
+// RESET PASSWORD
+Router.post("/reset-password",
+    notification(Notification.RESET_PASSWORD, User),
+    (req: Request, res: Response) => { 
+        AuthController.resetPassword(req,res)
     }
 );
 
@@ -42,6 +57,13 @@ Router.post("/change-password",
     authentification,
     (req: Request, res: Response) => { 
         AuthController.changePassword(req, res)
+    }
+);
+
+// verify otp
+Router.post("/verify-otp",
+    (req: Request, res: Response) => { 
+        AuthController.verifyOtp(req, res)
     }
 );
 
@@ -53,7 +75,7 @@ Router.get("/notification-alerts",
     }
 );
 
-Router.put("/notification-alerts/:id",
+Router.put("/notification-alerts",
     authentification,
     (req: Request, res: Response) => { 
         AuthController.updateNotificationStatus(req, res)
@@ -71,9 +93,10 @@ Router.get("/profile",
 Router.put("/profile",
     authentification,
     upload.single('profileImage'),
-    (req: Request, res: Response) => { 
+    (req: MulterRequest, res: Response) => { 
         AuthController.updateProfile(req, res)
     }
 );
+
 
 export default Router;

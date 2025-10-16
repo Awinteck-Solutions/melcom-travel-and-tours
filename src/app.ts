@@ -17,14 +17,16 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(errorHandler);
-app.use(Router);
-
 app.use((req, res, next) => {
   console.log("req.url :>> ", req.url);
   next();
 });
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(Router);
+
+
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 app.get("/", (req: Request, res: Response) => {
   res.json({

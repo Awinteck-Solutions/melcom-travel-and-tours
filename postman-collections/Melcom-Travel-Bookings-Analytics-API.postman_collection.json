@@ -1,0 +1,564 @@
+{
+  "info": {
+    "name": "Melcom Travel & Tours - Bookings & Analytics API",
+    "description": "Bookings management and analytics API collection for Melcom Travel & Tours including booking operations, payment management, and analytics dashboards.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Bookings Management",
+      "item": [
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Flight Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingType\": \"flight\",\n  \"flightDetails\": {\n    \"golBookingId\": \"GOL123456\",\n    \"departureCity\": \"Accra\",\n    \"arrivalCity\": \"London\",\n    \"departureDate\": \"2024-12-25T10:00:00Z\",\n    \"returnDate\": \"2025-01-05T15:00:00Z\",\n    \"airline\": \"British Airways\",\n    \"flightNumber\": \"BA123\",\n    \"passengers\": [\n      {\n        \"title\": \"Mr\",\n        \"firstName\": \"John\",\n        \"lastName\": \"Doe\",\n        \"dateOfBirth\": \"1990-01-01\",\n        \"passport\": \"G12345678\",\n        \"nationality\": \"Ghanaian\"\n      }\n    ]\n  },\n  \"contactInfo\": {\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+233123456789\"\n  },\n  \"totalAmount\": 1500.00,\n  \"currency\": \"GHS\",\n  \"paymentMethod\": \"card\",\n  \"status\": \"pending\",\n  \"paymentStatus\": \"pending\",\n  \"externalReferences\": {\n    \"golApiId\": \"GOL_API_123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Hotel Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingType\": \"hotel\",\n  \"hotelDetails\": {\n    \"hotelName\": \"Marriott Hotel London\",\n    \"location\": \"London, UK\",\n    \"checkInDate\": \"2024-12-25T15:00:00Z\",\n    \"checkOutDate\": \"2024-12-30T11:00:00Z\",\n    \"rooms\": 1,\n    \"guests\": 2\n  },\n  \"contactInfo\": {\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+233123456789\"\n  },\n  \"totalAmount\": 800.00,\n  \"currency\": \"GBP\",\n  \"paymentMethod\": \"card\",\n  \"status\": \"confirmed\",\n  \"paymentStatus\": \"paid\",\n  \"externalReferences\": {\n    \"hotelApiId\": \"HOTEL_API_456\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Ride Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingType\": \"ride\",\n  \"rideDetails\": {\n    \"pickupLocation\": \"Kotoka International Airport\",\n    \"dropoffLocation\": \"Marriott Hotel Accra\",\n    \"pickupDate\": \"2024-12-25T08:00:00Z\",\n    \"vehicleType\": \"sedan\",\n    \"duration\": \"45 minutes\"\n  },\n  \"contactInfo\": {\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+233123456789\"\n  },\n  \"totalAmount\": 50.00,\n  \"currency\": \"GHS\",\n  \"paymentMethod\": \"cash\",\n  \"status\": \"confirmed\",\n  \"paymentStatus\": \"pending\",\n  \"externalReferences\": {\n    \"rideApiId\": \"RIDE_API_789\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"paymentStatus\": \"paid\",\n  \"paymentReference\": \"PAY_REF_123456\",\n  \"confirmationDate\": \"2024-12-01T10:00:00Z\",\n  \"notes\": \"Booking confirmed and payment received successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Customer requested cancellation due to change in travel plans\",\n  \"notes\": \"Full refund processed within 5-7 business days\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "cancel"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"confirmationDate\": \"2024-12-01T10:00:00Z\",\n  \"notes\": \"Booking confirmed by admin after payment verification\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "confirm"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentStatus\": \"paid\",\n  \"paymentReference\": \"PAY_REF_123456\",\n  \"notes\": \"Payment confirmed via bank transfer - Transaction ID: TXN789123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings/:id/payment-status",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", ":id", "payment-status"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics Dashboard",
+      "item": [
+        {
+          "name": "Get Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Activity Logs with Filters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/logs?action=booking&resource=flight&startDate=2024-12-01&endDate=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs"],
+              "query": [
+                {
+                  "key": "action",
+                  "value": "booking"
+                },
+                {
+                  "key": "resource",
+                  "value": "flight"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-12-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users Analytics by Period",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-users?period=monthly&year=2024",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-users"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly"
+                },
+                {
+                  "key": "year",
+                  "value": "2024"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookings Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bookings Analytics by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-bookings?type=flight&status=confirmed",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-bookings"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "flight"
+                },
+                {
+                  "key": "status",
+                  "value": "confirmed"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Revenue Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-amount",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-amount"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Revenue Analytics by Currency",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-amount?currency=GHS&period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-amount"],
+              "query": [
+                {
+                  "key": "currency",
+                  "value": "GHS"
+                },
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cancellations Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-cancelations",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-cancelations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cancellations Analytics by Reason",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-cancelations?reason=customer_request&period=quarterly",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-cancelations"],
+              "query": [
+                {
+                  "key": "reason",
+                  "value": "customer_request"
+                },
+                {
+                  "key": "period",
+                  "value": "quarterly"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Info Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-contact-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-contact-info"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Info Analytics by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/total-contact-info?type=booking&status=resolved",
+              "host": ["{{baseUrl}}"],
+              "path": ["total-contact-info"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "booking"
+                },
+                {
+                  "key": "status",
+                  "value": "resolved"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

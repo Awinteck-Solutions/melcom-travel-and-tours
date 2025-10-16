@@ -1,0 +1,371 @@
+{
+  "info": {
+    "name": "Melcom Travel & Tours - Flights API",
+    "description": "Comprehensive flights API collection for Melcom Travel & Tours including search, booking, and management endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Flight Search",
+      "item": [
+        {
+          "name": "One-Way Flight Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"ACC\",\n  \"destination\": \"LHR\",\n  \"departureDate\": \"2024-12-25\",\n  \"adults\": 2,\n  \"children\": 0,\n  \"infants\": 0,\n  \"cabin\": \"ECO\",\n  \"tripType\": \"oneway\",\n  \"directFlightsOnly\": false,\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Return Flight Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"ACC\",\n  \"destination\": \"LHR\",\n  \"departureDate\": \"2024-12-25\",\n  \"returnDate\": \"2025-01-05\",\n  \"adults\": 2,\n  \"children\": 1,\n  \"infants\": 0,\n  \"cabin\": \"ECO\",\n  \"tripType\": \"return\",\n  \"directFlightsOnly\": false,\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Multi-City Flight Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tripType\": \"multicity\",\n  \"flightSteps\": [\n    {\n      \"origin\": \"ACC\",\n      \"destination\": \"LHR\",\n      \"date\": \"2024-12-25\"\n    },\n    {\n      \"origin\": \"LHR\",\n      \"destination\": \"CDG\",\n      \"date\": \"2024-12-30\"\n    },\n    {\n      \"origin\": \"CDG\",\n      \"destination\": \"ACC\",\n      \"date\": \"2025-01-05\"\n    }\n  ],\n  \"adults\": 2,\n  \"children\": 0,\n  \"cabin\": \"ECO\",\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Business Class Flight Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"ACC\",\n  \"destination\": \"JFK\",\n  \"departureDate\": \"2024-12-25\",\n  \"returnDate\": \"2025-01-05\",\n  \"adults\": 1,\n  \"children\": 0,\n  \"infants\": 0,\n  \"cabin\": \"BUS\",\n  \"tripType\": \"return\",\n  \"directFlightsOnly\": true,\n  \"currency\": \"USD\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Family Flight Search (with children and infants)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"ACC\",\n  \"destination\": \"DXB\",\n  \"departureDate\": \"2024-12-25\",\n  \"returnDate\": \"2025-01-05\",\n  \"adults\": 2,\n  \"children\": 2,\n  \"infants\": 1,\n  \"cabin\": \"ECO\",\n  \"tripType\": \"return\",\n  \"directFlightsOnly\": false,\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Flexible Date Search",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"ACC\",\n  \"destination\": \"LHR\",\n  \"departureDate\": \"2024-12-25\",\n  \"returnDate\": \"2025-01-05\",\n  \"adults\": 2,\n  \"children\": 0,\n  \"infants\": 0,\n  \"cabin\": \"ECO\",\n  \"tripType\": \"return\",\n  \"tolerance\": 3,\n  \"directFlightsOnly\": false,\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flights/search",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights", "search"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flight Deals",
+      "item": [
+        {
+          "name": "Get All Flight Deals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flight-deals",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-deals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Deal by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flight-deals/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-deals", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "deal_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Deal Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/flight-deals-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-deals-categories"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Flight Bookings",
+      "item": [
+        {
+          "name": "Get All Flight Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Flight Booking - Single Passenger",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"offer_123\",\n  \"passengers\": [\n    {\n      \"title\": \"Mr\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"dateOfBirth\": \"1990-01-01\",\n      \"nationality\": \"Ghanaian\",\n      \"passengerType\": \"ADT\",\n      \"passportNumber\": \"G12345678\",\n      \"passportExpiry\": \"2030-01-01\",\n      \"passportCountry\": \"Ghana\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"+233123456789\",\n      \"seatPreference\": \"window\",\n      \"mealPreference\": \"vegetarian\"\n    }\n  ],\n  \"contactEmail\": \"john.doe@example.com\",\n  \"contactPhone\": \"+233123456789\",\n  \"contactAddress\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Accra\",\n    \"country\": \"Ghana\",\n    \"postalCode\": \"00233\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Flight Booking - Family",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"offer_456\",\n  \"passengers\": [\n    {\n      \"title\": \"Mr\",\n      \"firstName\": \"John\",\n      \"lastName\": \"Doe\",\n      \"dateOfBirth\": \"1985-01-01\",\n      \"nationality\": \"Ghanaian\",\n      \"passengerType\": \"ADT\",\n      \"passportNumber\": \"G12345678\",\n      \"passportExpiry\": \"2030-01-01\",\n      \"passportCountry\": \"Ghana\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"+233123456789\"\n    },\n    {\n      \"title\": \"Mrs\",\n      \"firstName\": \"Jane\",\n      \"lastName\": \"Doe\",\n      \"dateOfBirth\": \"1988-05-15\",\n      \"nationality\": \"Ghanaian\",\n      \"passengerType\": \"ADT\",\n      \"passportNumber\": \"G87654321\",\n      \"passportExpiry\": \"2030-05-15\",\n      \"passportCountry\": \"Ghana\",\n      \"email\": \"jane.doe@example.com\",\n      \"phone\": \"+233123456789\"\n    },\n    {\n      \"title\": \"Master\",\n      \"firstName\": \"Junior\",\n      \"lastName\": \"Doe\",\n      \"dateOfBirth\": \"2015-03-20\",\n      \"nationality\": \"Ghanaian\",\n      \"passengerType\": \"CHD\",\n      \"passportNumber\": \"G11111111\",\n      \"passportExpiry\": \"2025-03-20\",\n      \"passportCountry\": \"Ghana\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"+233123456789\"\n    }\n  ],\n  \"contactEmail\": \"john.doe@example.com\",\n  \"contactPhone\": \"+233123456789\",\n  \"contactAddress\": {\n    \"street\": \"123 Main Street\",\n    \"city\": \"Accra\",\n    \"country\": \"Ghana\",\n    \"postalCode\": \"00233\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Flight Booking - Business Traveler",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": \"offer_789\",\n  \"passengers\": [\n    {\n      \"title\": \"Dr\",\n      \"firstName\": \"Sarah\",\n      \"lastName\": \"Johnson\",\n      \"dateOfBirth\": \"1980-08-10\",\n      \"nationality\": \"Ghanaian\",\n      \"passengerType\": \"ADT\",\n      \"passportNumber\": \"G99999999\",\n      \"passportExpiry\": \"2030-08-10\",\n      \"passportCountry\": \"Ghana\",\n      \"email\": \"sarah.johnson@company.com\",\n      \"phone\": \"+233987654321\",\n      \"frequentFlyerNumber\": \"BA123456789\",\n      \"specialRequests\": [\"wheelchair assistance\", \"kosher meal\"],\n      \"seatPreference\": \"aisle\",\n      \"mealPreference\": \"kosher\"\n    }\n  ],\n  \"contactEmail\": \"sarah.johnson@company.com\",\n  \"contactPhone\": \"+233987654321\",\n  \"contactAddress\": {\n    \"street\": \"456 Business Avenue\",\n    \"city\": \"Accra\",\n    \"country\": \"Ghana\",\n    \"postalCode\": \"00233\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Flight Booking by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/flight-bookings/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["flight-bookings", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "booking_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Utilities",
+      "item": [
+        {
+          "name": "Get Airports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airports",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Airports with Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airports?search=accra",
+              "host": ["{{baseUrl}}"],
+              "path": ["airports"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "accra"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,812 @@
+{
+  "info": {
+    "name": "Melcom Travel & Tours - Content & Blogs API",
+    "description": "Content management and blogs API collection for Melcom Travel & Tours including blog management, content pages, FAQs, and contact forms.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Blogs",
+      "item": [
+        {
+          "name": "Get All Blogs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blogs",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blog by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blogs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "blog_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Top 10 Travel Destinations in Ghana\",\n  \"content\": \"<h1>Discover the Beauty of Ghana</h1><p>Ghana is a beautiful country with rich culture and history. Here are the top 10 destinations you must visit...</p><h2>1. Cape Coast Castle</h2><p>This historic castle offers a glimpse into Ghana's colonial past...</p><h2>2. Kakum National Park</h2><p>Experience the rainforest canopy walk...</p>\",\n  \"excerpt\": \"Discover the most beautiful and culturally rich destinations in Ghana that every traveler should visit.\",\n  \"category\": \"Travel Destinations\",\n  \"author\": \"John Doe\",\n  \"imageUrl\": \"https://example.com/ghana-destinations.jpg\",\n  \"tags\": [\"ghana\", \"travel\", \"destinations\", \"culture\", \"tourism\"],\n  \"readTime\": 8,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Travel Tips Blog",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Essential Travel Tips for First-Time International Travelers\",\n  \"content\": \"<h1>Your Complete Guide to International Travel</h1><p>Traveling internationally for the first time can be overwhelming. Here are essential tips to make your journey smooth...</p><h2>1. Passport and Visa Requirements</h2><p>Ensure your passport is valid for at least 6 months...</p><h2>2. Travel Insurance</h2><p>Never travel without comprehensive travel insurance...</p>\",\n  \"excerpt\": \"Everything you need to know before your first international trip, from documents to packing tips.\",\n  \"category\": \"Travel Tips\",\n  \"author\": \"Jane Smith\",\n  \"imageUrl\": \"https://example.com/travel-tips.jpg\",\n  \"tags\": [\"travel tips\", \"international travel\", \"first time\", \"guide\"],\n  \"readTime\": 12,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Blog Post",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated: Top 10 Travel Destinations in Ghana\",\n  \"content\": \"<h1>Discover the Beauty of Ghana - Updated</h1><p>Ghana continues to be a beautiful country with rich culture and history. Here are the updated top 10 destinations...</p>\",\n  \"excerpt\": \"Updated list of the most beautiful and culturally rich destinations in Ghana.\",\n  \"category\": \"Travel Destinations\",\n  \"author\": \"John Doe\",\n  \"tags\": [\"ghana\", \"travel\", \"destinations\", \"culture\", \"tourism\", \"updated\"],\n  \"readTime\": 10,\n  \"status\": \"published\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "blog_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Blog Post",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blogs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "blog_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Blog Categories",
+      "item": [
+        {
+          "name": "Get Blog Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Blog Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Travel Tips\",\n  \"description\": \"Essential tips and advice for travelers\",\n  \"imageUrl\": \"https://example.com/travel-tips-category.jpg\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Destination Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Travel Destinations\",\n  \"description\": \"Explore beautiful destinations around the world\",\n  \"imageUrl\": \"https://example.com/destinations-category.jpg\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Blog Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Travel Tips\",\n  \"description\": \"Updated description for travel tips and advice\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Blog Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/blogs-categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["blogs-categories", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "category_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recommended Countries",
+      "item": [
+        {
+          "name": "Get Recommended Countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Recommended Countries by Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country?filter=popular",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country"],
+              "query": [
+                {
+                  "key": "filter",
+                  "value": "popular"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Recommended Country - Ghana",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghana\",\n  \"description\": \"Discover the rich culture and warm hospitality of Ghana, known as the Gateway to Africa\",\n  \"imageUrl\": \"https://example.com/ghana.jpg\",\n  \"currency\": \"GHS\",\n  \"language\": \"English\",\n  \"bestTimeToVisit\": \"November to March (dry season)\",\n  \"averageTemperature\": \"26-30°C\",\n  \"timeZone\": \"GMT+0\",\n  \"popularDestinations\": [\"Accra\", \"Kumasi\", \"Cape Coast\", \"Tamale\", \"Kakum National Park\"],\n  \"visaRequirements\": \"Visa on arrival for most countries, eVisa available\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Recommended Country - Dubai",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dubai\",\n  \"description\": \"Experience luxury and modernity in the heart of the Middle East\",\n  \"imageUrl\": \"https://example.com/dubai.jpg\",\n  \"currency\": \"AED\",\n  \"language\": \"Arabic, English\",\n  \"bestTimeToVisit\": \"November to March (cooler months)\",\n  \"averageTemperature\": \"25-35°C\",\n  \"timeZone\": \"GMT+4\",\n  \"popularDestinations\": [\"Burj Khalifa\", \"Dubai Mall\", \"Palm Jumeirah\", \"Dubai Marina\", \"Old Dubai\"],\n  \"visaRequirements\": \"Visa on arrival for many countries, eVisa available\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Recommended Country",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghana - Updated\",\n  \"description\": \"Updated description for Ghana with more attractions\",\n  \"popularDestinations\": [\"Accra\", \"Kumasi\", \"Cape Coast\", \"Tamale\", \"Kakum National Park\", \"Mole National Park\"],\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "country_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Recommended Country",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/recommended-country-list/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["recommended-country-list", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "country_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Legal Pages",
+      "item": [
+        {
+          "name": "Get Terms and Conditions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/terms-and-conditions",
+              "host": ["{{baseUrl}}"],
+              "path": ["terms-and-conditions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Privacy Policy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/privacy-policy",
+              "host": ["{{baseUrl}}"],
+              "path": ["privacy-policy"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Cookies Policy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cookies",
+              "host": ["{{baseUrl}}"],
+              "path": ["cookies"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact Information",
+      "item": [
+        {
+          "name": "Get Contact Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contact-info",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-info"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inquiry Types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/inquiry-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["inquiry-types"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contact Forms",
+      "item": [
+        {
+          "name": "Submit General Inquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+233123456789\",\n  \"subject\": \"General Travel Inquiry\",\n  \"message\": \"I would like to know more about your travel packages and services. Can you provide more information about your international flight deals?\",\n  \"inquiryType\": \"general\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Booking Inquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane.smith@example.com\",\n  \"phone\": \"+233987654321\",\n  \"subject\": \"Flight Booking Assistance\",\n  \"message\": \"I need help booking a flight from Accra to London for December 25th. Can you assist me with the booking process and provide pricing information?\",\n  \"inquiryType\": \"booking\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Support Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mike Johnson\",\n  \"email\": \"mike.johnson@example.com\",\n  \"phone\": \"+233555123456\",\n  \"subject\": \"Booking Modification Request\",\n  \"message\": \"I need to modify my existing booking (Reference: BK123456). Can you help me change the departure date from December 25th to December 28th?\",\n  \"inquiryType\": \"support\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Form Submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Contact Form Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"responded\",\n  \"response\": \"Thank you for your inquiry. We have received your request and will get back to you within 24 hours with detailed information about our travel packages.\",\n  \"respondedBy\": \"admin_user_id\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/contact-us-form/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["contact-us-form", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "form_submission_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "FAQs",
+      "item": [
+        {
+          "name": "Get All FAQs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Travel Documents FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What documents do I need for international travel?\",\n  \"answer\": \"For international travel, you will need a valid passport with at least 6 months validity remaining. Depending on your destination, you may also need a visa. Some countries offer visa-on-arrival or e-visa options. We recommend checking the specific requirements for your destination country well in advance of your travel date.\",\n  \"category\": \"Travel Documents\",\n  \"order\": 1,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"How far in advance should I book my flight?\",\n  \"answer\": \"We recommend booking your flight at least 2-3 months in advance for international travel to get the best prices and availability. For domestic flights, booking 2-4 weeks in advance is usually sufficient. However, prices can vary based on season, destination, and demand.\",\n  \"category\": \"Booking\",\n  \"order\": 2,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What payment methods do you accept?\",\n  \"answer\": \"We accept various payment methods including credit cards (Visa, MasterCard, American Express), debit cards, bank transfers, and mobile money. All payments are processed securely through our encrypted payment gateway to ensure your financial information is protected.\",\n  \"category\": \"Payment\",\n  \"order\": 3,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Cancellation FAQ",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Can I cancel or modify my booking?\",\n  \"answer\": \"Yes, you can cancel or modify your booking, but terms and conditions apply. Cancellation policies vary depending on the airline, fare type, and timing of your request. We recommend reviewing the specific terms when making your booking. Our customer service team can assist you with modifications and cancellations.\",\n  \"category\": \"Cancellation\",\n  \"order\": 4,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update FAQ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Updated: What documents do I need for international travel?\",\n  \"answer\": \"Updated answer: For international travel, you will need a valid passport with at least 6 months validity remaining. Depending on your destination, you may also need a visa. Some countries offer visa-on-arrival or e-visa options. We recommend checking the specific requirements for your destination country well in advance of your travel date. Additionally, some destinations may require proof of vaccination or health certificates.\",\n  \"category\": \"Travel Documents\",\n  \"order\": 1,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "faq_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete FAQ",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/faqs/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["faqs", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "faq_id_here"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

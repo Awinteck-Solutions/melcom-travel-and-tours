@@ -237,6 +237,11 @@ export class FlightsController {
         departureDate,
         returnDate,
         passengers = "ADT",
+        adults = 1,
+        children = 0,
+        infants = 0,
+        youth = 0,
+        seniors = 0,
         type = "one-way",
         tripType, // Alternative name for type
         // Multi-city parameters
@@ -316,7 +321,35 @@ export class FlightsController {
       }
 
       // Build passenger array - can be extended for multiple passenger types
-      const searchedPassengers = [{ Code: passengers }];
+      const searchedPassengers = [];
+      // if 
+      if (adults > 0) {
+        // if adult is 1, then add ADT, if adult is 2, then add ADT,ADT
+          for (let i = 0; i < adults; i++) {
+            searchedPassengers.push({ Code: PassengerTypeEnum.ADULT });
+          }
+      }
+      if (children > 0) {
+        for (let i = 0; i < children; i++) {
+          searchedPassengers.push({ Code: PassengerTypeEnum.CHILD });
+        }
+      }
+      if (infants > 0) {
+        for (let i = 0; i < infants; i++) {
+          searchedPassengers.push({ Code: PassengerTypeEnum.INFANT });
+        }
+      }
+      if (youth > 0) {
+        for (let i = 0; i < youth; i++) {
+            searchedPassengers.push({ Code: PassengerTypeEnum.YOUTH });
+        }
+      }
+      if (seniors > 0) {
+        for (let i = 0; i < seniors; i++) {
+          searchedPassengers.push({ Code: PassengerTypeEnum.SENIOR });
+        }
+      }
+      console.log('searchedPassengers', searchedPassengers)
 
       // Use the exact GOL API structure for flight search
       const golRequest = {
@@ -356,12 +389,15 @@ export class FlightsController {
         },
       });
 
+
       // Transform GOL API response to user-friendly format
       const golData = response.data.GolApi;
+     
       const flightOffers =
         golData.ResponseDetail?.SearchFlightsExtendedResponse_2?.FlightOffers ||
         [];
 
+        // console.log('golData', flightOffers)
       // Format flight results
       const flights = [];
 
@@ -382,30 +418,41 @@ export class FlightsController {
               options.forEach((option) => {
                 const flightSegments =
                   option.FlightSegments?.FlightSegment || [];
+                console.log('flightSegments.length', flightSegments.length)
                 flightSegments.forEach((segment) => {
-                  segments.push({
-                    flightNumber: segment.FlightNumber,
-                    airline: {
-                      code: segment.MarketingAirline,
-                      name:
-                        golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
-                          (airline) => airline.Code === segment.MarketingAirline
-                        )?.Name?.$t || segment.MarketingAirline,
-                    },
-                    aircraft: segment.PlaneType,
-                    departure: {
-                      airport: segment.OriginAirport,
-                      time: segment.DepartureDateTime,
-                      terminal: segment.DepartureTerminal,
-                    },
-                    arrival: {
-                      airport: segment.DestinationAirport,
-                      time: segment.ArrivalDateTime,
-                      terminal: segment.ArrivalTerminal,
-                    },
-                    duration: segment.JourneyDuration,
-                    cabinClass: segment.CabinClass,
-                  });
+                  // Check if segment already exists to avoid duplicates
+                  const segmentExists = segments.some(existingSegment => 
+                    existingSegment.flightNumber === segment.FlightNumber &&
+                    existingSegment.departure.airport === segment.OriginAirport &&
+                    existingSegment.arrival.airport === segment.DestinationAirport &&
+                    existingSegment.departure.time === segment.DepartureDateTime
+                  );
+                  
+                  if (!segmentExists) {
+                    segments.push({
+                      flightNumber: segment.FlightNumber,
+                      airline: {
+                        code: segment.MarketingAirline,
+                        name:
+                          golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
+                            (airline) => airline.Code === segment.MarketingAirline
+                          )?.Name?.$t || segment.MarketingAirline,
+                      },
+                      aircraft: segment.PlaneType,
+                      departure: {
+                        airport: segment.OriginAirport,
+                        time: segment.DepartureDateTime,
+                        terminal: segment.DepartureTerminal,
+                      },
+                      arrival: {
+                        airport: segment.DestinationAirport,
+                        time: segment.ArrivalDateTime,
+                        terminal: segment.ArrivalTerminal,
+                      },
+                      duration: segment.JourneyDuration,
+                      cabinClass: segment.CabinClass,
+                    });
+                  }
                 });
               });
             });

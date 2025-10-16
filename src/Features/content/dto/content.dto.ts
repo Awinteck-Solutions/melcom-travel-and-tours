@@ -94,6 +94,7 @@ export class ContactInfoDTO {
     id: string
     address: string
     phone: string
+    whatsapp: string
     email: string
     workingHours?: string
     socialMedia?: {
@@ -110,6 +111,7 @@ export class ContactInfoDTO {
         this.id = data.id || data._id;
         this.address = data.address;
         this.phone = data.phone;
+        this.whatsapp = data.whatsapp;
         this.email = data.email;
         this.workingHours = data.workingHours;
         this.socialMedia = data.socialMedia;
@@ -123,6 +125,7 @@ export class ContactUsFormDTO {
     name: string
     email: string
     phone?: string
+    whatsapp?: string
     subject: string
     message: string
     inquiryType: string

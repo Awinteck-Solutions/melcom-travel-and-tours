@@ -8,7 +8,14 @@ import { sendMail } from "../../../helpers/emailer";
 import User from "../schema/user.schema";
 import getRandomInt from "../../../helpers/random";
 import { OAuth2Client } from "google-auth-library";
+import multer from "multer";
+import path from "path";
 
+
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
+}
 export class AuthController {
   // SIGNUP
   static async signup(req: Request, res: Response) {
@@ -38,15 +45,14 @@ export class AuthController {
       const encryptedPassword = await encrypt.encryptpass(password);
 
       const user = new User({
-        firstname,
-        lastname,
-        email,
+        ...req.body,
+        role: req.body.role || "USER",
         password: encryptedPassword,
         otp,
       });
 
       const savedUser = await user.save();
-      const token = encrypt.generateToken({
+      const token = await encrypt.generateToken({
         id: savedUser._id,
         email: savedUser.email,
         firstname: savedUser.firstname,
@@ -54,15 +60,23 @@ export class AuthController {
         role: savedUser.role,
       });
 
+
+      sendMail(
+        savedUser.email,
+        savedUser.firstname,
+        'Melcom Travels - Welcome',
+        'signupHtml',
+        ''
+      )
+      
+
       return res.status(201).json({
         status: true,
         message: "User registered successfully",
         user: {
-          id: savedUser._id,
-          firstname: savedUser.firstname,
-          lastname: savedUser.lastname,
-          email: savedUser.email,
-          role: savedUser.role,
+          ...user._doc,
+          id: user._id,
+          password: null,
           token: token,
         },
       });
@@ -103,7 +117,7 @@ export class AuthController {
       );
 
       if (isPasswordValid) {
-        const token = encrypt.generateToken({
+        const token = await encrypt.generateToken({
           id: user._id,
           email: user.email,
           firstname: user.firstname,
@@ -111,15 +125,21 @@ export class AuthController {
           role: user.role,
         });
 
+        console.log('user: ', {
+            ...user._doc,
+            id: user._id,
+            image:  user.image && user.image !== null ? `${process.env.BASE_URL}/${user.image}` : null,
+            password: null,
+            token: token,
+          },)
         return res.json({
           status: true,
           message: "Login successful",
           user: {
+            ...user._doc,
             id: user._id,
-            email: user.email,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            role: user.role,
+            image:  user.image && user.image !== null ? `${process.env.BASE_URL}/${user.image}` : null,
+            password: null,
             token: token,
           },
         });
@@ -267,7 +287,7 @@ export class AuthController {
   static async changePassword(req: Request, res: Response) {
     try {
       const { currentPassword, newPassword } = req.body;
-      const userId = req.user?.id;
+      const userId = req["currentUser"].id;
 
       if (!currentPassword || !newPassword) {
         return res.status(400).json({
@@ -276,7 +296,38 @@ export class AuthController {
         });
       }
 
-      // TODO: Implement password change logic
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
+
+      const isPasswordValid = await encrypt.comparepassword(
+        currentPassword,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          status: false,
+          message: "Invalid current password",
+        });
+      }
+
+      user.password = await encrypt.encryptpass(newPassword);
+      await user.save();
+
+      sendMail(
+        user.email,
+        user.firstname,
+        'Melcom Travels - Password Reset',
+        'resetSuccessHtml',
+        ''
+      )
+      
       res.status(200).json({
         success: true,
         message: "Password changed successfully",
@@ -292,11 +343,20 @@ export class AuthController {
   // NOTIFICATION ALERTS
   static async getNotificationAlerts(req: Request, res: Response) {
     try {
-      const userId = req.user?.id;
+      const userId = req["currentUser"].id;
 
-      // TODO: Implement notification alerts logic
-      let response = []; // This will be populated from database
+      const user = await User.findById(userId);
 
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
+
+      let response = user.notifications;
+      console.log('response :>> ', response);
+      
       return res.status(200).json({
         success: true,
         message: "Notification alerts retrieved successfully",
@@ -312,16 +372,31 @@ export class AuthController {
 
   static async updateNotificationStatus(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const { status } = req.body;
+      const { id } = req["currentUser"];
+      const payload = req.body;
 
-      // TODO: Implement notification status update logic
-      let response = {}; // This will be populated after update
+      console.log('payload :>> ', payload);
+      console.log('id :>> ', id);
+      // notification update logic
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
+
+      console.log('payload', payload)
+      user.notifications = payload;
+      await user.save();
 
       return res.status(200).json({
         success: true,
         message: "Notification status updated successfully",
-        response,
+        user: {
+          ...user._doc, id: user._id, password: null,
+          image: `${process.env.BASE_URL}/${user.image}`,
+        },
       });
     } catch (error) {
       return res.status(500).json({
@@ -352,23 +427,66 @@ export class AuthController {
     }
   }
 
-  static async updateProfile(req: Request, res: Response) {
-    try {
-      const userId = req.user?.id;
-      const profileImage = req.file;
 
-      // TODO: Implement profile update logic
-      let response = {}; // This will be populated after update
+   // UPLOAD PROFILE IMAGE
+   static async updateProfile(req: MulterRequest, res: Response) {
+    try {
+      const { id } = req["currentUser"];
+      const payload = req.body;
+    
+      if(req.file){
+        payload.image = path.join(req.body.fileType || "uploads", req.file.filename);
+      }
+      // Update admin profile with image URL
+      const user = await User.findByIdAndUpdate(
+        id,
+        { ...payload },
+        {new: true, runValidators: true}
+      );
+
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "User not found",
+        });
+      }
 
       return res.status(200).json({
-        success: true,
-        message: "Profile updated successfully",
-        response,
+        status: true,
+        message: "Profile image uploaded successfully",
+        user: {
+          ...user._doc, id: user._id,
+        },
+      });
+    } catch (error) { 
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+        error: error.message || error,
+      });
+    }
+   }
+  
+  static async verifyOtp(req: Request, res: Response) {
+    try {
+      const { otp, email } = req.body;
+      const user = await User.findOne({ email, otp });
+      if (!user) {
+        return res.status(404).json({
+          status: false,
+          message: "Invalid OTP",
+        });
+      }
+      user.otp = null;
+      await user.save();
+      return res.status(200).json({
+        status: true,
+        message: "OTP verified successfully",
       });
     } catch (error) {
       return res.status(500).json({
-        success: false,
-        message: "Failed to update profile",
+        status: false,
+        message: "Failed to verify OTP",
       });
     }
   }

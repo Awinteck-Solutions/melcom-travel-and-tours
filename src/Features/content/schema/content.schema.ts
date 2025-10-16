@@ -111,6 +111,10 @@ const ContactInfoSchema = new Schema({
         type: String,
         required: true
     },
+    whatsapp: {
+        type: String,
+        required: true
+    },
     workingHours: String,
     socialMedia: {
         facebook: String,
