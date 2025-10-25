@@ -29,9 +29,11 @@ const BookingsSchema = new Schema({
             title: String,
             firstName: String,
             lastName: String,
-            dateOfBirth: Date,
-            passport: String,
-            nationality: String
+            email: String,
+            phone: String,
+            // dateOfBirth: Date,
+            // passport: String,
+            // nationality: String
         }]
     },
     // Hotel booking details (when bookingType is HOTEL)

@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "Melcom Travel & Tours - Payments API",
+    "description": "Payment processing API collection for Melcom Travel & Tours using Hubtel payment gateway integration.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkoutId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Payment Processing",
+      "item": [
+        {
+          "name": "Initiate Flight Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.payment && response.data.payment.checkoutId) {",
+                  "        pm.collectionVariables.set('checkoutId', response.data.payment.checkoutId);",
+                  "    }",
+                  "    if (response.data && response.data.bookingId) {",
+                  "        pm.collectionVariables.set('bookingId', response.data.bookingId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"returnUrl\": \"https://melcomtravel.com/booking/success\",\n  \"cancellationUrl\": \"https://melcomtravel.com/booking/cancelled\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/initiate/:bookingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "initiate", ":bookingId"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "{{bookingId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/status/:bookingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "status", ":bookingId"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "{{bookingId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Payment/Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Customer requested cancellation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/cancel/:bookingId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "cancel", ":bookingId"],
+              "variable": [
+                {
+                  "key": "bookingId",
+                  "value": "{{bookingId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Payment with Hubtel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/verify/:checkoutId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "verify", ":checkoutId"],
+              "variable": [
+                {
+                  "key": "checkoutId",
+                  "value": "{{checkoutId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Hubtel Callbacks",
+      "item": [
+        {
+          "name": "Hubtel Payment Callback (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"0000\",\n  \"ResponseText\": \"Success\",\n  \"Data\": {\n    \"CheckoutId\": \"{{checkoutId}}\",\n    \"ClientReference\": \"MT1703123456ABC\",\n    \"Amount\": 1500.00,\n    \"Status\": \"Success\",\n    \"TransactionId\": \"TXN123456789\",\n    \"Description\": \"Flight Booking Payment\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/hubtel/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "hubtel", "callback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hubtel Payment Callback (Failed)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"1001\",\n  \"ResponseText\": \"Payment Failed\",\n  \"Data\": {\n    \"CheckoutId\": \"{{checkoutId}}\",\n    \"ClientReference\": \"MT1703123456ABC\",\n    \"Amount\": 1500.00,\n    \"Status\": \"Failed\",\n    \"TransactionId\": \"TXN123456789\",\n    \"Description\": \"Flight Booking Payment - Insufficient Funds\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/hubtel/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "hubtel", "callback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hubtel Payment Callback (Cancelled)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"1002\",\n  \"ResponseText\": \"Payment Cancelled\",\n  \"Data\": {\n    \"CheckoutId\": \"{{checkoutId}}\",\n    \"ClientReference\": \"MT1703123456ABC\",\n    \"Amount\": 1500.00,\n    \"Status\": \"Cancelled\",\n    \"TransactionId\": \"TXN123456789\",\n    \"Description\": \"Flight Booking Payment - User Cancelled\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/hubtel/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "hubtel", "callback"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

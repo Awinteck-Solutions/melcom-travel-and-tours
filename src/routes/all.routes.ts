@@ -9,6 +9,8 @@ import blogRoutes from "../Features/blogs/route/blogs.route";
 import contentRoutes from "../Features/content/route/content.route";
 import analyticsRoutes from "../Features/analytics/route/analytics.route";
 import bookingsRoutes from "../Features/bookings/route/bookings.route";
+import paymentsRoutes from "../Features/payments/route/payments.route";
+import userCheckoutRoutes from "../Features/userCheckout/route/userCheckout.route";
 
 const Router = express.Router();
 
@@ -22,6 +24,8 @@ Router.use("/", blogRoutes);
 Router.use("/", contentRoutes);
 Router.use("/", bookingsRoutes);
 Router.use("/", analyticsRoutes);
+Router.use("/api/payments", paymentsRoutes);
+Router.use("/api/checkout", userCheckoutRoutes);
 
 // Test routes
 Router.use("/test", accountsRoutes);

@@ -514,14 +514,30 @@ export class FlightsController {
   // Get all flight bookings
   static async getAllFlightBookings(req: Request, res: Response) {
     try {
-      return res.status(501).json({
-        success: false,
-        message: "Get all flight bookings endpoint - logic to be implemented",
+      const { Bookings } = await import("../../bookings/schema/bookings.schema");
+      const { status, userId } = req.query;
+
+      // Build filter
+      let filter: any = { bookingType: "FLIGHT" };
+      if (status) filter.status = status;
+      if (userId) filter.userId = userId;
+
+      const bookings = await Bookings.find(filter)
+        .sort({ bookingDate: -1 })
+        .limit(50);
+
+      return res.status(200).json({
+        success: true,
+        message: "Flight bookings retrieved successfully",
+        data: {
+          bookings: bookings,
+          total: bookings.length,
+        },
       });
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: "System error",
+        message: "Failed to retrieve flight bookings",
         error: error.message,
       });
     }
@@ -530,15 +546,173 @@ export class FlightsController {
   // Create a new flight booking
   static async createFlightBooking(req: Request, res: Response) {
     try {
-      return res.status(501).json({
-        success: false,
-        message: "Create flight booking endpoint - logic to be implemented",
+      const { Bookings } = await import("../../bookings/schema/bookings.schema");
+      const { FlightBookingDTO, PassengerDTO } = await import("../dto/flights.dto");
+      
+      const bookingData = new FlightBookingDTO(req.body);
+      const userId = req["currentUser"]?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: "User authentication required",
+        });
+      }
+
+      // Validate required fields
+      if (!bookingData.offerId || !bookingData.passengers || bookingData.passengers.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Offer ID and passenger information are required",
+        });
+      }
+
+      // Step 1: Create reservation with GOL API
+      const golReservationRequest = {
+        GolApi: {
+          PassiveSessionId: this.GOL_PASSIVE_SESSION_ID,
+          Authorization: {
+            Requestor: {
+              ClientId: this.GOL_CLIENT_ID,
+              Password: this.GOL_PASSWORD,
+            },
+          },
+          Settings: {
+            Localization: {
+              Language: "en",
+              Country: "CZ",
+            },
+          },
+          RequestDetail: {
+            CreateReservationRequest_1: {
+              OfferId: bookingData.offerId,
+              Passengers: {
+                Passenger: bookingData.passengers.map((passenger) => ({
+                  Title: passenger.title,
+                  FirstName: passenger.firstName,
+                  LastName: passenger.lastName,
+                  DateOfBirth: passenger.dateOfBirth,
+                  Nationality: passenger.nationality,
+                  PassengerType: passenger.passengerType,
+                  Passport: {
+                    Number: passenger.passportNumber,
+                    ExpiryDate: passenger.passportExpiry,
+                    Country: passenger.passportCountry,
+                  },
+                  ContactInfo: {
+                    Email: passenger.email,
+                    Phone: passenger.phone,
+                  },
+                  SpecialRequests: passenger.specialRequests || [],
+                  SeatPreference: passenger.seatPreference,
+                  MealPreference: passenger.mealPreference,
+                })),
+              },
+              ContactInfo: {
+                Email: bookingData.contactEmail,
+                Phone: bookingData.contactPhone,
+                Address: bookingData.contactAddress ? {
+                  Street: bookingData.contactAddress.street,
+                  City: bookingData.contactAddress.city,
+                  Country: bookingData.contactAddress.country,
+                  PostalCode: bookingData.contactAddress.postalCode,
+                } : undefined,
+              },
+            },
+          },
+        },
+      };
+
+      // Make reservation request to GOL API
+      const golResponse = await axios.post(this.GOL_API_BASE_URL, golReservationRequest, {
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+
+      const golData = golResponse.data.GolApi;
+      
+      if (!golData.ResponseDetail?.CreateReservationResponse_1) {
+        return res.status(400).json({
+          success: false,
+          message: "Failed to create reservation with GOL API",
+          error: golData.ErrorMessage || "Unknown error",
+        });
+      }
+
+      const reservation = golData.ResponseDetail.CreateReservationResponse_1;
+      const reservationCode = reservation.ReservationCode;
+      const pnr = reservation.PNR;
+
+      // Step 2: Calculate total amount (you can implement your own pricing logic)
+      const totalAmount = this.calculateBookingTotal(reservation);
+
+      // Step 3: Generate unique booking reference
+      const bookingReference = `MT${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+      // Step 4: Create booking in your database
+      const newBooking = new Bookings({
+        bookingReference,
+        userId,
+        bookingType: "FLIGHT",
+        flightDetails: {
+          golBookingId: reservationCode,
+          departureCity: this.extractDepartureCity(reservation),
+          arrivalCity: this.extractArrivalCity(reservation),
+          departureDate: this.extractDepartureDate(reservation),
+          returnDate: this.extractReturnDate(reservation),
+          airline: this.extractAirline(reservation),
+          flightNumber: this.extractFlightNumber(reservation),
+          passengers: bookingData.passengers.map(p => ({
+            title: p.title,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            dateOfBirth: p.dateOfBirth,
+            passport: p.passportNumber,
+            nationality: p.nationality,
+          })),
+        },
+        contactInfo: {
+          email: bookingData.contactEmail,
+          phone: bookingData.contactPhone,
+        },
+        totalAmount,
+        currency: "USD", // You can make this dynamic
+        paymentMethod: "CARD", // Default, can be updated after payment
+        status: "PENDING",
+        paymentStatus: "PENDING",
+        externalReferences: {
+          golApiId: reservationCode,
+        },
+        notes: `GOL API Reservation: ${reservationCode}`,
+      });
+
+      const savedBooking = await newBooking.save();
+
+      // Step 5: Return booking confirmation
+      return res.status(201).json({
+        success: true,
+        message: "Flight booking created successfully",
+        data: {
+          booking: savedBooking,
+          reservation: {
+            reservationCode,
+            pnr,
+            status: "PENDING_PAYMENT",
+          },
+          nextSteps: {
+            payment: "Complete payment to confirm booking",
+            confirmation: "Booking will be confirmed after successful payment",
+          },
+        },
+      });
+
     } catch (error) {
+      console.error("Flight booking error:", error);
       return res.status(500).json({
         success: false,
-        message: "System error",
-        error: error.message,
+        message: "Failed to create flight booking",
+        error: error.response?.data || error.message,
       });
     }
   }
@@ -546,18 +720,139 @@ export class FlightsController {
   // Get flight booking by ID
   static async getFlightBookingById(req: Request, res: Response) {
     try {
+      const { Bookings } = await import("../../bookings/schema/bookings.schema");
       const { id } = req.params;
+      const userId = req["currentUser"]?.id;
 
-      return res.status(501).json({
-        success: false,
-        message: `Get flight booking by ID: ${id} - logic to be implemented`,
+      const booking = await Bookings.findOne({
+        _id: id,
+        bookingType: "FLIGHT",
+        ...(userId ? { userId } : {}), // Only filter by userId if user is authenticated
+      });
+
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: "Flight booking not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Flight booking retrieved successfully",
+        data: {
+          booking: booking,
+        },
       });
     } catch (error) {
       return res.status(500).json({
         success: false,
-        message: "System error",
+        message: "Failed to retrieve flight booking",
         error: error.message,
       });
+    }
+  }
+
+  // ===== HELPER METHODS =====
+
+  // Calculate total booking amount from GOL reservation
+  private static calculateBookingTotal(reservation: any): number {
+    try {
+      // Extract pricing from GOL reservation response
+      const pricing = reservation.Pricing || {};
+      const totalAmount = pricing.TotalAmount || 0;
+      
+      // Convert to number if it's a string
+      return typeof totalAmount === 'string' ? parseFloat(totalAmount) : totalAmount;
+    } catch (error) {
+      console.error("Error calculating booking total:", error);
+      return 0; // Default fallback
+    }
+  }
+
+  // Extract departure city from reservation
+  private static extractDepartureCity(reservation: any): string {
+    try {
+      const segments = reservation.FlightSegments?.FlightSegment || [];
+      if (segments.length > 0) {
+        return segments[0].OriginAirport || "Unknown";
+      }
+      return "Unknown";
+    } catch (error) {
+      return "Unknown";
+    }
+  }
+
+  // Extract arrival city from reservation
+  private static extractArrivalCity(reservation: any): string {
+    try {
+      const segments = reservation.FlightSegments?.FlightSegment || [];
+      if (segments.length > 0) {
+        const lastSegment = segments[segments.length - 1];
+        return lastSegment.DestinationAirport || "Unknown";
+      }
+      return "Unknown";
+    } catch (error) {
+      return "Unknown";
+    }
+  }
+
+  // Extract departure date from reservation
+  private static extractDepartureDate(reservation: any): Date {
+    try {
+      const segments = reservation.FlightSegments?.FlightSegment || [];
+      if (segments.length > 0) {
+        const departureDateTime = segments[0].DepartureDateTime;
+        return new Date(departureDateTime);
+      }
+      return new Date();
+    } catch (error) {
+      return new Date();
+    }
+  }
+
+  // Extract return date from reservation (for return flights)
+  private static extractReturnDate(reservation: any): Date | null {
+    try {
+      const segments = reservation.FlightSegments?.FlightSegment || [];
+      // For return flights, find the return segment
+      if (segments.length > 1) {
+        const returnSegment = segments.find(segment => 
+          segment.DepartureDateTime > segments[0].DepartureDateTime
+        );
+        if (returnSegment) {
+          return new Date(returnSegment.DepartureDateTime);
+        }
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Extract airline from reservation
+  private static extractAirline(reservation: any): string {
+    try {
+      const segments = reservation.FlightSegments?.FlightSegment || [];
+      if (segments.length > 0) {
+        return segments[0].MarketingAirline || "Unknown";
+      }
+      return "Unknown";
+    } catch (error) {
+      return "Unknown";
+    }
+  }
+
+  // Extract flight number from reservation
+  private static extractFlightNumber(reservation: any): string {
+    try {
+      const segments = reservation.FlightSegments?.FlightSegment || [];
+      if (segments.length > 0) {
+        return segments[0].FlightNumber || "Unknown";
+      }
+      return "Unknown";
+    } catch (error) {
+      return "Unknown";
     }
   }
 

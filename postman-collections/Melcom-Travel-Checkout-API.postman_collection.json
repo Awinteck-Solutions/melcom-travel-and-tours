@@ -1,0 +1,561 @@
+{
+  "info": {
+    "name": "Melcom Travel Checkout API",
+    "description": "Complete API collection for Melcom Travel checkout functionality including flight booking, payment processing, and GOL API integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "item": [
+    {
+      "name": "Checkout Management",
+      "item": [
+        {
+          "name": "Create Checkout - Single Passenger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data) {",
+                  "        pm.collectionVariables.set('checkoutId', response.data.checkoutId);",
+                  "        pm.collectionVariables.set('bookingReference', response.data.bookingReference);",
+                  "        pm.collectionVariables.set('checkoutUrl', response.data.checkoutUrl);",
+                  "        console.log('Checkout created successfully:', response.data.bookingReference);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flight\": {\n    \"id\": 1,\n    \"from\": \"Accra Kotoka (ACC)\",\n    \"fromCode\": \"ACC\",\n    \"to\": \"LOS (LOS)\",\n    \"toCode\": \"LOS\",\n    \"airlineLogo\": \"/emirates.svg\",\n    \"departure\": \"2025-10-31T06:30:00.000Z\",\n    \"arrival\": \"2025-10-31T08:40:00.000Z\",\n    \"airline\": \"AFRICA WORLD AIRLINES LIMITED\",\n    \"planeType\": \"ER4\",\n    \"flightType\": \"one-way\",\n    \"returnDate\": null,\n    \"price\": 1842,\n    \"duration\": \"1h 10m\",\n    \"stops\": 0,\n    \"flightNumber\": \"208\",\n    \"class\": \"Economy\",\n    \"segment\": [\n      {\n        \"flightNumber\": \"208\",\n        \"airline\": \"AFRICA WORLD AIRLINES LIMITED\",\n        \"aircraft\": \"ER4\",\n        \"departure\": {\n          \"airport\": \"ACC\",\n          \"time\": \"2025-10-31T06:30:00\",\n          \"terminal\": \"3\"\n        },\n        \"arrival\": {\n          \"airport\": \"LOS\",\n          \"time\": \"2025-10-31T08:40:00\",\n          \"terminal\": \"2\"\n        },\n        \"duration\": \"PT1H10M\",\n        \"cabinClass\": \"Economy\"\n      }\n    ],\n    \"bookingReference\": \"PD001\",\n    \"currency\": \"GHS\",\n    \"perPassenger\": 1842,\n    \"segments\": [\n      {\n        \"flightNumber\": \"208\",\n        \"airline\": \"AFRICA WORLD AIRLINES LIMITED\",\n        \"aircraft\": \"ER4\",\n        \"departure\": {\n          \"airport\": \"ACC\",\n          \"time\": \"2025-10-31T06:30:00\",\n          \"terminal\": \"3\"\n        },\n        \"arrival\": {\n          \"airport\": \"LOS\",\n          \"time\": \"2025-10-31T08:40:00\",\n          \"terminal\": \"2\"\n        },\n        \"duration\": \"PT1H10M\",\n        \"cabinClass\": \"Economy\"\n      }\n    ],\n    \"totalSegments\": 1,\n    \"firstAirline\": \"AFRICA WORLD AIRLINES LIMITED\",\n    \"firstAirlineCode\": \"AW\"\n  },\n  \"Traveler\": [\n    {\n      \"PassengerType\": \"ADT\",\n      \"BirthDate\": \"1990-01-15\",\n      \"Passport\": \"G12345678\",\n      \"LoyaltyProgram\": \"\",\n      \"Gender\": \"Male\",\n      \"NamePrefix\": \"Mr\",\n      \"GivenName\": \"John\",\n      \"Surname\": \"Doe\",\n      \"email\": \"john.doe@example.com\",\n      \"phone\": \"+233241234567\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Checkout - Family (Multiple Passengers)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data) {",
+                  "        pm.collectionVariables.set('familyCheckoutId', response.data.checkoutId);",
+                  "        pm.collectionVariables.set('familyBookingReference', response.data.bookingReference);",
+                  "        console.log('Family checkout created:', response.data.bookingReference);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flight\": {\n    \"id\": 2,\n    \"from\": \"Accra Kotoka (ACC)\",\n    \"fromCode\": \"ACC\",\n    \"to\": \"London Heathrow (LHR)\",\n    \"toCode\": \"LHR\",\n    \"airlineLogo\": \"/british-airways.svg\",\n    \"departure\": \"2025-12-15T14:30:00.000Z\",\n    \"arrival\": \"2025-12-15T22:45:00.000Z\",\n    \"airline\": \"BRITISH AIRWAYS\",\n    \"planeType\": \"B777\",\n    \"flightType\": \"one-way\",\n    \"returnDate\": null,\n    \"price\": 2500,\n    \"duration\": \"6h 15m\",\n    \"stops\": 0,\n    \"flightNumber\": \"BA78\",\n    \"class\": \"Economy\",\n    \"segment\": [\n      {\n        \"flightNumber\": \"BA78\",\n        \"airline\": \"BRITISH AIRWAYS\",\n        \"aircraft\": \"B777\",\n        \"departure\": {\n          \"airport\": \"ACC\",\n          \"time\": \"2025-12-15T14:30:00\",\n          \"terminal\": \"3\"\n        },\n        \"arrival\": {\n          \"airport\": \"LHR\",\n          \"time\": \"2025-12-15T22:45:00\",\n          \"terminal\": \"5\"\n        },\n        \"duration\": \"PT6H15M\",\n        \"cabinClass\": \"Economy\"\n      }\n    ],\n    \"bookingReference\": \"PD002\",\n    \"currency\": \"GHS\",\n    \"perPassenger\": 2500,\n    \"segments\": [\n      {\n        \"flightNumber\": \"BA78\",\n        \"airline\": \"BRITISH AIRWAYS\",\n        \"aircraft\": \"B777\",\n        \"departure\": {\n          \"airport\": \"ACC\",\n          \"time\": \"2025-12-15T14:30:00\",\n          \"terminal\": \"3\"\n        },\n        \"arrival\": {\n          \"airport\": \"LHR\",\n          \"time\": \"2025-12-15T22:45:00\",\n          \"terminal\": \"5\"\n        },\n        \"duration\": \"PT6H15M\",\n        \"cabinClass\": \"Economy\"\n      }\n    ],\n    \"totalSegments\": 1,\n    \"firstAirline\": \"BRITISH AIRWAYS\",\n    \"firstAirlineCode\": \"BA\"\n  },\n  \"Traveler\": [\n    {\n      \"PassengerType\": \"ADT\",\n      \"BirthDate\": \"1985-03-20\",\n      \"Passport\": \"G87654321\",\n      \"LoyaltyProgram\": \"BA123456\",\n      \"Gender\": \"Male\",\n      \"NamePrefix\": \"Mr\",\n      \"GivenName\": \"Michael\",\n      \"Surname\": \"Smith\",\n      \"email\": \"michael.smith@example.com\",\n      \"phone\": \"+233241234567\"\n    },\n    {\n      \"PassengerType\": \"ADT\",\n      \"BirthDate\": \"1988-07-12\",\n      \"Passport\": \"G11223344\",\n      \"LoyaltyProgram\": \"\",\n      \"Gender\": \"Female\",\n      \"NamePrefix\": \"Mrs\",\n      \"GivenName\": \"Sarah\",\n      \"Surname\": \"Smith\",\n      \"email\": \"sarah.smith@example.com\",\n      \"phone\": \"+233241234567\"\n    },\n    {\n      \"PassengerType\": \"CHD\",\n      \"BirthDate\": \"2015-11-08\",\n      \"Passport\": \"G55667788\",\n      \"LoyaltyProgram\": \"\",\n      \"Gender\": \"Male\",\n      \"NamePrefix\": \"Master\",\n      \"GivenName\": \"James\",\n      \"Surname\": \"Smith\",\n      \"email\": \"michael.smith@example.com\",\n      \"phone\": \"+233241234567\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Payment Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data) {",
+                  "        console.log('Payment Status:', response.data.paymentStatus);",
+                  "        console.log('Booking Status:', response.data.status);",
+                  "        console.log('Transaction ID:', response.data.transactionId);",
+                  "        console.log('GOL Reservation ID:', response.data.golReservationId);",
+                  "        ",
+                  "        // Test that status check was performed",
+                  "        pm.test('Should have valid status', function () {",
+                  "            pm.expect(['PENDING', 'CONFIRMED', 'FAILED', 'CANCELLED']).to.include(response.data.status);",
+                  "        });",
+                  "        ",
+                  "        pm.test('Should have valid payment status', function () {",
+                  "            pm.expect(['PENDING', 'PAID', 'FAILED', 'REFUNDED']).to.include(response.data.paymentStatus);",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/status/{{checkoutId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "status", "{{checkoutId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Checkouts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data) {",
+                  "        console.log('Total checkouts:', response.data.length);",
+                  "        response.data.forEach((checkout, index) => {",
+                  "            console.log(`Checkout ${index + 1}: ${checkout.bookingReference} - ${checkout.status}`);",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", ""]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Checkout management endpoints for creating and tracking flight bookings"
+    },
+    {
+      "name": "Payment Processing",
+      "item": [
+        {
+          "name": "Hubtel Payment Callback - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success) {",
+                  "        console.log('Payment callback processed successfully');",
+                  "        console.log('Final Status:', response.data.status);",
+                  "        console.log('Payment Status:', response.data.paymentStatus);",
+                  "        console.log('Hubtel Status Check:', response.data.hubtelStatusCheck);",
+                  "        ",
+                  "        // Test that callback was processed successfully",
+                  "        pm.test('Should process callback successfully', function () {",
+                  "            pm.expect(response.success).to.be.true;",
+                  "        });",
+                  "        ",
+                  "        pm.test('Should have valid final status', function () {",
+                  "            pm.expect(['CONFIRMED', 'FAILED']).to.include(response.data.status);",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"0000\",\n  \"ResponseText\": \"Success\",\n  \"Data\": {\n    \"CheckoutId\": \"{{checkoutId}}\",\n    \"ClientReference\": \"{{bookingReference}}\",\n    \"Amount\": 1842.00,\n    \"Status\": \"Success\",\n    \"TransactionId\": \"TXN123456789\",\n    \"Description\": \"Flight Booking Payment - Single Passenger\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/payment/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "payment", "callback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hubtel Payment Callback - Family Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success) {",
+                  "        console.log('Family payment callback processed successfully');",
+                  "        console.log('Final Status:', response.data.status);",
+                  "        console.log('Payment Status:', response.data.paymentStatus);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"0000\",\n  \"ResponseText\": \"Success\",\n  \"Data\": {\n    \"CheckoutId\": \"{{familyCheckoutId}}\",\n    \"ClientReference\": \"{{familyBookingReference}}\",\n    \"Amount\": 7500.00,\n    \"Status\": \"Success\",\n    \"TransactionId\": \"TXN987654321\",\n    \"Description\": \"Flight Booking Payment - Family (3 Passengers)\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/payment/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "payment", "callback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hubtel Payment Callback - Failed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success) {",
+                  "        console.log('Payment failure callback processed');",
+                  "        console.log('Final Status:', response.data.status);",
+                  "        console.log('Payment Status:', response.data.paymentStatus);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"1001\",\n  \"ResponseText\": \"Payment Failed\",\n  \"Data\": {\n    \"CheckoutId\": \"{{checkoutId}}\",\n    \"ClientReference\": \"{{bookingReference}}\",\n    \"Amount\": 1842.00,\n    \"Status\": \"Failed\",\n    \"TransactionId\": \"TXN_FAILED_123\",\n    \"Description\": \"Insufficient funds\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/payment/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "payment", "callback"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Hubtel Payment Callback - Cancelled",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success) {",
+                  "        console.log('Payment cancellation callback processed');",
+                  "        console.log('Final Status:', response.data.status);",
+                  "        console.log('Payment Status:', response.data.paymentStatus);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ResponseCode\": \"1002\",\n  \"ResponseText\": \"Payment Cancelled\",\n  \"Data\": {\n    \"CheckoutId\": \"{{checkoutId}}\",\n    \"ClientReference\": \"{{bookingReference}}\",\n    \"Amount\": 1842.00,\n    \"Status\": \"Cancelled\",\n    \"TransactionId\": \"TXN_CANCELLED_123\",\n    \"Description\": \"User cancelled payment\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/payment/callback",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "payment", "callback"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Payment processing endpoints for handling Hubtel payment callbacks"
+    },
+    {
+      "name": "Test Scenarios",
+      "item": [
+        {
+          "name": "Invalid Flight Data Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Should return 400 for invalid data', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Should return error message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.message).to.include('required');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flight\": {\n    \"id\": 1\n  },\n  \"Traveler\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unauthorized Access Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Should return 401 for unauthorized access', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", ""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Non-existent Checkout Status Test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Should return 404 for non-existent checkout', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Should return not found message', function () {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.be.false;",
+                  "    pm.expect(response.message).to.include('not found');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/checkout/status/non_existent_id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "checkout", "status", "non_existent_id"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Test scenarios for error handling and edge cases"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "your_auth_token_here",
+      "type": "string"
+    },
+    {
+      "key": "checkoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingReference",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkoutUrl",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "familyCheckoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "familyBookingReference",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default values if not already set",
+          "if (!pm.collectionVariables.get('baseUrl')) {",
+          "    pm.collectionVariables.set('baseUrl', 'http://localhost:3000');",
+          "}",
+          "",
+          "if (!pm.collectionVariables.get('authToken')) {",
+          "    pm.collectionVariables.set('authToken', 'your_auth_token_here');",
+          "}",
+          "",
+          "console.log('Base URL:', pm.collectionVariables.get('baseUrl'));",
+          "console.log('Auth Token:', pm.collectionVariables.get('authToken') ? 'Set' : 'Not Set');"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test for all requests",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has valid JSON', function () {",
+          "    pm.response.to.be.json;",
+          "});",
+          "",
+          "// Log response for debugging",
+          "if (pm.response.code >= 400) {",
+          "    console.log('Error Response:', pm.response.text());",
+          "}"
+        ]
+      }
+    }
+  ]
+}
