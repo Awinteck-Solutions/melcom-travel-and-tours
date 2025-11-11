@@ -1,60 +1,81 @@
-import { Request, Response } from "express";
-import { UserResponse } from "../dto/user.dto";
-import { Status } from "../enums/status.enum";
+import {Request, Response} from "express";
+import {UserResponse} from "../dto/user.dto";
+import {Status} from "../enums/status.enum";
 import multer from "multer";
 import User from "../schema/user.schema";
-import { encrypt } from "../../../helpers/tokenizer";
+import {encrypt} from "../../../helpers/tokenizer";
+import {Roles} from "../enums/roles.enum";
+import UserCheckout from "../../userCheckout/schema/userCheckout.schema";
 
 export class UserController {
   // Admin routes
 
-  // DELETE ACCOUNT
-  static async deleteUser(req: Request, res: Response) {
+  // Get admin users list
+  static async getAdminUsers(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-
-      User.deleteOne({ _id: id })
-        .then((result) => {
-          return res.status(201).json({
-            status: true,
-            message: "User delete success",
-          });
-        })
-        .catch((error) => {
-          return res.status(404).json({
-            status: false,
-            message: "User delete failed",
-            other: error,
-          });
+      console.log('Roles.USER', Roles.USER)
+      const users = await User.find({role: {$ne: Roles.USER}, status:{ $ne:Status.DELETED}});
+      return res
+        .status(200)
+        .json({
+          status: true,
+          message: "Admin users fetched successfully",
+          response: users,
         });
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
+      console.log('error', error)
+      return res
+        .status(500)
+        .json({status: false, message: "Internal server error"});
     }
   }
 
   // GET ALL USERS
   static async getAllUsers(req: Request, res: Response) {
     try {
-      User.find()
-        .then((result) => {
-          return res.status(201).json({
-            status: true,
-            message: "User success",
-          });
-        })
-        .catch((error) => {
-          return res.status(404).json({
-            status: false,
-            message: "User failed",
-            other: error,
-          });
+      const users = await User.find({role: Roles.USER, status:{ $ne:Status.DELETED}});
+      return res
+        .status(200)
+        .json({
+          status: true,
+          message: "Users fetched successfully",
+          response: users,
         });
     } catch (error) {
       return res.status(500).json({
-        success: false,
+        status: false,
+        message: "Internal server error",
+      });
+    }
+  }
+
+  // DELETE ACCOUNT
+  static async deleteUser(req: Request, res: Response) {
+    try {
+      const {id} = req.params;
+
+      User.updateOne({_id: id}, {$set: {status: Status.DELETED}})
+        .then((result) => {
+          return res
+            .status(200)
+            .json({
+              status: true,
+              message: "User deleted successfully",
+              response: result,
+            });
+        })
+        .catch((error) => {
+          return res
+            .status(404)
+            .json({
+              status: false,
+              message: "User not found",
+              response: error.message,
+            });
+        });
+    } catch (error) {
+      return res.status(500).json({
+        status: false,
         message: "Internal server error",
       });
     }
@@ -63,8 +84,8 @@ export class UserController {
   // GET SINGLE USERS
   static async getOneUser(req: Request, res: Response) {
     try {
-      let { id } = req.params;
-      User.findOne({ _id: id })
+      let {id} = req.params;
+      User.findOne({_id: id})
         .then((response) => {
           return res.status(201).json({
             status: true,
@@ -81,155 +102,60 @@ export class UserController {
         });
     } catch (error) {
       return res.status(500).json({
-        success: false,
+        status: false,
         message: "Internal server error",
       });
+    }
+  }
+
+  // GET ALL CHECKOUTS FOR A USER
+  static async getAllCheckoutsForUser(req: Request, res: Response) {
+    try {
+      let {email} = req.params;
+      const checkouts = await UserCheckout.find({ "contactInfo.email": email });
+      
+      return res.status(200).json({status: true, message: "Checkouts fetched successfully", response: checkouts});
+    } catch (error) {
+      return res.status(500).json({status: false, message: "Internal server error", response: error.message});
     }
   }
 
   // GET ALL USERS
-  static async updateUserStatus(req: Request, res: Response) {
-    try {
-      let { id } = req.params;
-      let { status } = req.body;
-      User.findOneAndUpdate(
-        { _id: id },
-        { $set: status },
-        { new: true, runValidators: true }
-      )
-        .then((response) => {
-          return res.status(201).json({
-            status: true,
-            message: "User success",
-            response,
-          });
-        })
-        .catch((error) => {
-          return res.status(404).json({
-            status: false,
-            message: "User failed",
-            other: error,
-          });
-        });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  }
-
-  // User routes
-  // GET PROFILE
-  static async profile(req: Request, res: Response) {
-    try {
-      const { id } = req["currentUser"];
-      console.log("id :>> ", id);
-      User.findOne({ _id: id })
-        .then((response) => {
-          return res.status(201).json({
-            status: true,
-            message: "User success",
-            response,
-          });
-        })
-        .catch((error) => {
-          return res.status(404).json({
-            status: false,
-            message: "User failed",
-            other: error,
-          });
-        });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
-    }
-  }
-
   static async updateUser(req: Request, res: Response) {
     try {
-      const { id } = req["currentUser"];
-      const allowedFields = [
-        "firstname",
-        "lastname",
-        "phoneNumber",
-        "profileImage",
-      ];
-      const updates = req.body;
-      const profileImage = req.file ? req.file.filename : null;
+      let {id} = req.params;
 
-      const user: any = {};
-      // Only allow updates for specific fields
-      Object.keys(updates).forEach((key) => {
-        if (allowedFields.includes(key)) {
-          user[key] = updates[key];
-        }
-      });
-
-      // Update profile image if provided
-      if (profileImage) {
-        user.profileImage = profileImage;
-      }
-
-      User.updateOne({ _id: id }, { ...user }, { upsert: false })
-        .then((result) => {
-          return res.status(201).json({
-            status: true,
-            message: "User update success",
-          });
+      User.findOneAndUpdate(
+        {_id: id},
+        {...req.body},
+        {new: true, runValidators: true}
+      )
+        .then((response) => {
+          if (response) {
+            return res
+              .status(200)
+              .json({
+                status: true,
+                message: "User updated successfully",
+                response: response,
+              });
+          } else {
+            return res
+              .status(404)
+              .json({status: false, message: "User not found"});
+          }
         })
         .catch((error) => {
           return res.status(404).json({
             status: false,
-            message: "User update failed",
-            other: error,
+            message: error.message,
           });
         });
     } catch (error) {
       return res.status(500).json({
-        success: false,
+        status: false,
         message: "Internal server error",
-        error: error.message,
       });
-    }
-  }
-
-  // CHANGE PASSWORD
-  static async changePassword(req: Request, res: Response) {
-    try {
-      const { id } = req["currentUser"];
-      const { password, newPassword } = req.body;
-      console.log("password, newPassword  :>> ", password, newPassword);
-      if (!password || !newPassword) {
-        return res.status(500).json({ message: "password required" });
-      }
-
-      const encryptPassword = await encrypt.encryptpass(newPassword);
-      User.updateOne(
-        { _id: id },
-        { password: encryptPassword },
-        { upsert: false }
-      )
-        .then((result) => {
-          return res.status(201).json({
-            status: true,
-            message: "User update success",
-          });
-        })
-        .catch((error) => {
-          return res.status(404).json({
-            status: false,
-            message: "User update failed",
-            other: error,
-          });
-        });
-    } catch (error) {
-      console.error(error);
-      return res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
     }
   }
 }

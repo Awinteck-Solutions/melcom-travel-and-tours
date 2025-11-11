@@ -1,176 +1,24 @@
 import { Request, Response } from "express";
 import {
-  RecommendedCountries,
   TermsAndConditions,
   PrivacyPolicy,
   CookiesPolicy,
-  ContactInfo,
-  ContactUsForm,
   InquiryTypes,
-  FAQ,
+
 } from "../schema/content.schema";
 import {
-  RecommendedCountriesDTO,
   TermsAndConditionsDTO,
   PrivacyPolicyDTO,
   CookiesPolicyDTO,
-  ContactInfoDTO,
-  ContactUsFormDTO,
   InquiryTypesDTO,
-  FAQDTO,
 } from "../dto/content.dto";
+import Image from "../schema/image.schema";
 
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
+}
 export class ContentController {
-  // Recommended Countries
-  async getRecommendedCountries(req: Request, res: Response) {
-    try {
-      const countries = await RecommendedCountries.find({ status: "ACTIVE" });
-      const countriesDTO = countries.map(
-        (country) => new RecommendedCountriesDTO(country)
-      );
-
-      res.status(200).json({
-        success: true,
-        data: countriesDTO,
-        message: "Recommended countries retrieved successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error retrieving recommended countries",
-        error: error.message,
-      });
-    }
-  }
-
-  // Recommended Countries with filtering
-  async getRecommendedCountriesByFilter(req: Request, res: Response) {
-    try {
-      const { country } = req.query;
-
-      let filter: any = { status: "ACTIVE" };
-      if (country) {
-        filter.country = { $regex: country, $options: "i" }; // Case-insensitive search
-      }
-
-      const countries = await RecommendedCountries.find(filter);
-      const countriesDTO = countries.map(
-        (country) => new RecommendedCountriesDTO(country)
-      );
-
-      res.status(200).json({
-        success: true,
-        data: countriesDTO,
-        message: country
-          ? `Recommended countries for '${country}' retrieved successfully`
-          : "All recommended countries retrieved successfully",
-        filter: { country: country || null },
-        totalResults: countriesDTO.length,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error retrieving recommended countries",
-        error: error.message,
-      });
-    }
-  }
-
-  // Create Recommended Country
-  async createRecommendedCountry(req: Request, res: Response) {
-    try {
-      const { image, orientation, country, numberOfDestinations } = req.body;
-
-      const newCountry = new RecommendedCountries({
-        image,
-        orientation,
-        country,
-        numberOfDestinations,
-        status: "ACTIVE",
-      });
-
-      const savedCountry = await newCountry.save();
-      const countryDTO = new RecommendedCountriesDTO(savedCountry);
-
-      res.status(201).json({
-        success: true,
-        data: countryDTO,
-        message: "Recommended country created successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error creating recommended country",
-        error: error.message,
-      });
-    }
-  }
-
-  // Update Recommended Country
-  async updateRecommendedCountry(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-
-      const updatedCountry = await RecommendedCountries.findByIdAndUpdate(
-        id,
-        { ...updateData, updatedAt: new Date() },
-        { new: true }
-      );
-
-      if (!updatedCountry) {
-        return res.status(404).json({
-          success: false,
-          message: "Recommended country not found",
-        });
-      }
-
-      const countryDTO = new RecommendedCountriesDTO(updatedCountry);
-
-      res.status(200).json({
-        success: true,
-        data: countryDTO,
-        message: "Recommended country updated successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error updating recommended country",
-        error: error.message,
-      });
-    }
-  }
-
-  // Delete Recommended Country
-  async deleteRecommendedCountry(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-
-      const deletedCountry = await RecommendedCountries.findByIdAndUpdate(
-        id,
-        { status: "INACTIVE" },
-        { new: true }
-      );
-
-      if (!deletedCountry) {
-        return res.status(404).json({
-          success: false,
-          message: "Recommended country not found",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Recommended country deleted successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error deleting recommended country",
-        error: error.message,
-      });
-    }
-  }
 
   // Terms and Conditions
   async getTermsAndConditions(req: Request, res: Response) {
@@ -196,6 +44,58 @@ export class ContentController {
       res.status(500).json({
         success: false,
         message: "Error retrieving terms and conditions",
+        error: error.message,
+      });
+    }
+  }
+
+  async createTermsAndConditions(req: Request, res: Response) {
+    try {
+      const { title, content, version, status } = req.body;
+      const created = await new TermsAndConditions({ title, content, version, status }).save();
+      const termsDTO = new TermsAndConditionsDTO(created);
+      res.status(201).json({
+        success: true,
+        data: termsDTO,
+        message: "Terms and conditions created successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error creating terms and conditions",
+        error: error.message,
+      });
+    }
+  }
+
+  async updateTermsAndConditions(req: Request, res: Response) {
+    try {
+      const id  = '690a0afebedb35490521fe13';
+      const { title, content, version, status } = req.body;
+      const payload: any = {};
+      if (title !== undefined) payload.title = title;
+      if (content !== undefined) payload.content = content;
+      if (version !== undefined) payload.version = version;
+      if (status !== undefined) payload.status = status;
+
+      const updated = await TermsAndConditions.findByIdAndUpdate(id, payload, { new: true });
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Terms and conditions not found",
+        });
+      }
+
+      const termsDTO = new TermsAndConditionsDTO(updated);
+      res.status(200).json({
+        success: true,
+        data: termsDTO,
+        message: "Terms and conditions updated successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error updating terms and conditions",
         error: error.message,
       });
     }
@@ -230,6 +130,58 @@ export class ContentController {
     }
   }
 
+  async createPrivacyPolicy(req: Request, res: Response) {
+    try {
+      const { title, content, version, status } = req.body;
+      const created = await new PrivacyPolicy({ title, content, version, status }).save();
+      const policyDTO = new PrivacyPolicyDTO(created);
+      res.status(201).json({
+        success: true,
+        data: policyDTO,
+        message: "Privacy policy created successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error creating privacy policy",
+        error: error.message,
+      });
+    }
+  }
+
+  async updatePrivacyPolicy(req: Request, res: Response) {
+    try {
+      const id  = '690a11984b95f2324361a0c7';
+      const { title, content, version, status } = req.body;
+      const payload: any = {};
+      if (title !== undefined) payload.title = title;
+      if (content !== undefined) payload.content = content;
+      if (version !== undefined) payload.version = version;
+      if (status !== undefined) payload.status = status;
+
+      const updated = await PrivacyPolicy.findByIdAndUpdate(id, payload, { new: true });
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Privacy policy not found",
+        });
+      }
+
+      const policyDTO = new PrivacyPolicyDTO(updated);
+      res.status(200).json({
+        success: true,
+        data: policyDTO,
+        message: "Privacy policy updated successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error updating privacy policy",
+        error: error.message,
+      });
+    }
+  }
+
   // Cookies Policy
   async getCookiesPolicy(req: Request, res: Response) {
     try {
@@ -259,175 +211,65 @@ export class ContentController {
     }
   }
 
-  // Contact Info
-  async getContactInfo(req: Request, res: Response) {
+  async createCookiesPolicy(req: Request, res: Response) {
     try {
-      const contact = await ContactInfo.findOne({ status: "ACTIVE" }).sort({
-        createdAt: -1,
-      });
-      if (!contact) {
-        return res.status(404).json({
-          success: false,
-          message: "Contact information not found",
-        });
-      }
-
-      const contactDTO = new ContactInfoDTO(contact);
-
-      res.status(200).json({
-        success: true,
-        data: contactDTO,
-        message: "Contact information retrieved successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error retrieving contact information",
-        error: error.message,
-      });
-    }
-  }
-
-  
-  async postContactInfo(req: Request, res: Response) {
-    try {
-      const contact = new ContactInfo(req.body);
-      const savedContact = await contact.save();
-      const contactDTO = new ContactInfoDTO(savedContact);
+      const { title, content, version, effectiveDate, status } = req.body;
+      const created = await new CookiesPolicy({ title, content, version, effectiveDate, status }).save();
+      const cookiesDTO = new CookiesPolicyDTO(created);
       res.status(201).json({
         success: true,
-        data: contactDTO,
-        message: "Contact information posted successfully",
+        data: cookiesDTO,
+        message: "Cookies policy created successfully",
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error posting contact information",
+        message: "Error creating cookies policy",
         error: error.message,
       });
     }
   }
 
-  async updateContactInfo(req: Request, res: Response) {
+  async updateCookiesPolicy(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const updateData = req.body;
-      const updatedContact = await ContactInfo.findByIdAndUpdate(id, updateData, { new: true });
-      if (!updatedContact) {
+      const { title, content, version, effectiveDate, status } = req.body;
+      const payload: any = {};
+      if (title !== undefined) payload.title = title;
+      if (content !== undefined) payload.content = content;
+      if (version !== undefined) payload.version = version;
+      if (effectiveDate !== undefined) payload.effectiveDate = effectiveDate;
+      if (status !== undefined) payload.status = status;
+
+      const updated = await CookiesPolicy.findByIdAndUpdate(id, payload, { new: true });
+      if (!updated) {
         return res.status(404).json({
           success: false,
-          message: "Contact information not found",
-        });
-      }
-      const contactDTO = new ContactInfoDTO(updatedContact);
-      res.status(200).json({
-        success: true,
-        data: contactDTO,
-        message: "Contact information updated successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error updating contact information",
-        error: error.message,
-      });
-    }
-  }
-
-  // Contact Us Form
-  async submitContactForm(req: Request, res: Response) {
-    try {
-      const formData = new ContactUsForm(req.body);
-      const savedForm = await formData.save();
-
-      const formDTO = new ContactUsFormDTO(savedForm);
-
-      res.status(201).json({
-        success: true,
-        data: formDTO,
-        message: "Contact form submitted successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error submitting contact form",
-        error: error.message,
-      });
-    }
-  }
-
-  // Get Contact Form Submissions (Admin)
-  async getContactFormSubmissions(req: Request, res: Response) {
-    try {
-      const { status } = req.query;
-      const filter = status ? { status } : {};
-
-      const submissions = await ContactUsForm.find(filter).sort({
-        createdAt: -1,
-      });
-      const submissionsDTO = submissions.map(
-        (submission) => new ContactUsFormDTO(submission)
-      );
-
-      res.status(200).json({
-        success: true,
-        data: submissionsDTO,
-        message: "Contact form submissions retrieved successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error retrieving contact form submissions",
-        error: error.message,
-      });
-    }
-  }
-
-  // Update Contact Form Status (Admin)
-  async updateContactFormStatus(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const { status, response, respondedBy } = req.body;
-
-      const updateData: any = { status };
-      if (response) {
-        updateData.response = response;
-        updateData.respondedAt = new Date();
-        updateData.respondedBy = respondedBy;
-      }
-
-      const updatedSubmission = await ContactUsForm.findByIdAndUpdate(
-        id,
-        updateData,
-        { new: true }
-      );
-      if (!updatedSubmission) {
-        return res.status(404).json({
-          success: false,
-          message: "Contact form submission not found",
+          message: "Cookies policy not found",
         });
       }
 
-      const submissionDTO = new ContactUsFormDTO(updatedSubmission);
-
+      const cookiesDTO = new CookiesPolicyDTO(updated);
       res.status(200).json({
         success: true,
-        data: submissionDTO,
-        message: "Contact form status updated successfully",
+        data: cookiesDTO,
+        message: "Cookies policy updated successfully",
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error updating contact form status",
+        message: "Error updating cookies policy",
         error: error.message,
       });
     }
   }
+
+
 
   // Inquiry Types
   async getInquiryTypes(req: Request, res: Response) {
     try {
-      const types = await InquiryTypes.find({ status: "ACTIVE" });
+      const types = await InquiryTypes.find({ status:  "ACTIVE" });
       const typesDTO = types.map((type) => new InquiryTypesDTO(type));
 
       res.status(200).json({
@@ -444,105 +286,180 @@ export class ContentController {
     }
   }
 
-  // FAQ
-  async getFAQs(req: Request, res: Response) {
+  // Get all inquiry types (Admin only - includes deleted)
+  async getAllInquiryTypes(req: Request, res: Response) {
     try {
-      const { category } = req.query;
-      const filter = category
-        ? { category, status: "ACTIVE" }
-        : { status: "ACTIVE" };
+      const { status } = req.query;
+      const filter: any = {};
+      if (status) filter.status = status;
 
-      const faqs = await FAQ.find(filter).sort({ order: 1, createdAt: -1 });
-      const faqsDTO = faqs.map((faq) => new FAQDTO(faq));
+      const types = await InquiryTypes.find({ status: {$ne: "DELETED"} }).sort({ createdAt: -1 });
+      const typesDTO = types.map((type) => new InquiryTypesDTO(type));
 
       res.status(200).json({
         success: true,
-        data: faqsDTO,
-        message: "FAQs retrieved successfully",
+        data: typesDTO,
+        message: "All inquiry types retrieved successfully",
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error retrieving FAQs",
+        message: "Error retrieving inquiry types",
         error: error.message,
       });
     }
   }
 
-  // Create FAQ (Admin)
-  async createFAQ(req: Request, res: Response) {
+  async createInquiryType(req: Request, res: Response) {
     try {
-      const faqData = new FAQ(req.body);
-      const savedFAQ = await faqData.save();
-
-      const faqDTO = new FAQDTO(savedFAQ);
-
+      const { name, description, status } = req.body;
+      const created = await new InquiryTypes({ name, description, status }).save();
+      const typeDTO = new InquiryTypesDTO(created);
       res.status(201).json({
         success: true,
-        data: faqDTO,
-        message: "FAQ created successfully",
+        data: typeDTO,
+        message: "Inquiry type created successfully",
       });
     } catch (error) {
+        console.log('error', error)
       res.status(500).json({
         success: false,
-        message: "Error creating FAQ",
+        message: "Error creating inquiry type",
         error: error.message,
       });
     }
   }
 
-  // Update FAQ (Admin)
-  async updateFAQ(req: Request, res: Response) {
+  async updateInquiryType(req: Request, res: Response) {
     try {
       const { id } = req.params;
+      const { name, description, status } = req.body;
+      const payload: any = {};
+      if (name !== undefined) payload.name = name;
+      if (description !== undefined) payload.description = description;
+      if (status !== undefined) payload.status = status;
 
-      const updatedFAQ = await FAQ.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      if (!updatedFAQ) {
+      const updated = await InquiryTypes.findByIdAndUpdate(id, payload, { new: true });
+      if (!updated) {
         return res.status(404).json({
           success: false,
-          message: "FAQ not found",
+          message: "Inquiry type not found",
         });
       }
 
-      const faqDTO = new FAQDTO(updatedFAQ);
-
+      const typeDTO = new InquiryTypesDTO(updated);
       res.status(200).json({
         success: true,
-        data: faqDTO,
-        message: "FAQ updated successfully",
+        data: typeDTO,
+        message: "Inquiry type updated successfully",
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error updating FAQ",
+        message: "Error updating inquiry type",
         error: error.message,
       });
     }
   }
 
-  // Delete FAQ (Admin)
-  async deleteFAQ(req: Request, res: Response) {
+  async deleteInquiryType(req: Request, res: Response) {
     try {
       const { id } = req.params;
-
-      const deletedFAQ = await FAQ.findByIdAndDelete(id);
-      if (!deletedFAQ) {
+      const updatedType = await InquiryTypes.findByIdAndUpdate(
+        id,
+        { status: "DELETED" },
+        { new: true }
+      );
+      if (!updatedType) {
         return res.status(404).json({
           success: false,
-          message: "FAQ not found",
+          message: "Inquiry type not found",
         });
       }
-
+      const typeDTO = new InquiryTypesDTO(updatedType);
       res.status(200).json({
         success: true,
-        message: "FAQ deleted successfully",
+        data: typeDTO,
+        message: "Inquiry type deleted successfully",
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "Error deleting FAQ",
+        message: "Error deleting inquiry type",
+        error: error.message,
+      });
+    }
+  }
+
+  // Upload Image
+  async uploadImage(req: MulterRequest, res: Response) {
+    try {
+      // check if image is required
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Image is required",
+        });
+      }
+
+      // build public url to the image (served from /upload)
+      const publicUrl = `${process.env.BASE_URL}/uploads/${req.file.filename}`;
+
+      const newImage = new Image({ url: publicUrl });
+      const savedImage = await newImage.save();
+      res.status(200).json({
+        success: true,
+        data: savedImage,
+        message: "Image uploaded successfully",
+      });
+    }
+    catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error uploading image",
+        error: error.message,
+      });
+    }
+  }
+  // Get Images
+  async getImages(req: Request, res: Response) {
+    try {
+      const images = await Image.find();
+      res.status(200).json({
+        success: true,
+        data: images,
+        message: "Images retrieved successfully",
+      });
+    }
+    catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error retrieving images",
+        error: error.message,
+      });
+    }
+  }
+
+  // Delete Image
+  async deleteImage(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const deletedImage = await Image.findByIdAndDelete(id);
+      if (!deletedImage) {
+        return res.status(404).json({
+          success: false,
+          message: "Image not found",
+        });
+      }
+      res.status(200).json({
+        success: true,
+        message: "Image deleted successfully",
+      });
+    }
+    catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Error deleting image",
         error: error.message,
       });
     }

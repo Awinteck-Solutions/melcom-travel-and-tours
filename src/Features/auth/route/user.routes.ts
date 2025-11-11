@@ -1,66 +1,52 @@
-import express, { Response, Request } from "express";
-import { UserController } from "../controllers/user.controller";
-import { Notification } from "../enums/notification.enum";
-import { Roles } from "../enums/roles.enum";
+import express, {Response, Request} from "express";
+import {UserController} from "../controllers/user.controller";
+import {Notification} from "../enums/notification.enum";
+import {Roles} from "../enums/roles.enum";
 import path from "path";
 import multer from "multer";
-import { upload } from "../../../helpers/uploader";
-import { authentification } from "../../../middlewares/authentication.middleware";
-import { authorization } from "../../../middlewares/authorization.middleware";
+import {upload} from "../../../helpers/uploader";
+import {authentification} from "../../../middlewares/authentication.middleware";
+import {authorization} from "../../../middlewares/authorization.middleware";
 
-const Router = express.Router(); // DELETE ACCOUNT
-Router.delete(
-  "/delete-user/:id",
+const Router = express.Router();
+
+// Get admin users list
+Router.get(
+  "/admins",
   authentification,
+  authorization([Roles.ADMIN]),
   (req: Request, res: Response) => {
-    UserController.deleteUser(req, res);
+    UserController.getAdminUsers(req, res);
   }
 );
 
-// GET ALL USERS
+// Get all users list
 Router.get(
-  "/",
+  "/clients",
   authentification,
-  authorization([Roles.ADMIN, Roles.HR, Roles.PAYROLL, Roles.PROJECTS]),
+  authorization([Roles.ADMIN]),
   (req: Request, res: Response) => {
     UserController.getAllUsers(req, res);
   }
 );
+
+// GET ALL CHECKOUTS FOR A USER
+Router.get("/:email/checkouts", authentification, (req: Request, res: Response) => {
+  UserController.getAllCheckoutsForUser(req, res);
+});
 
 // GET SINGLE USERS
 Router.get("/:id", (req: Request, res: Response) => {
   UserController.getOneUser(req, res);
 });
 
-Router.patch(
-  "/update-user/:id",
-  authentification,
-  (req: Request, res: Response) => {
-    UserController.updateUser(req, res);
-  }
-);
-
-// GET PROFILE
-Router.get("/profile", authentification, (req: Request, res: Response) => {
-  UserController.profile(req, res);
+Router.patch("/:id", authentification, (req: Request, res: Response) => {
+  UserController.updateUser(req, res);
 });
 
 // UPDATE PROFILE
-Router.patch(
-  "/update-user",
-  authentification,
-  (req: Request, res: Response) => {
-    UserController.updateUser(req, res);
-  }
-);
-
-// CHANGE PASSWORD
-Router.patch(
-  "/change-password",
-  authentification,
-  (req: Request, res: Response) => {
-    UserController.changePassword(req, res);
-  }
-);
+Router.delete("/:id", authentification, (req: Request, res: Response) => {
+  UserController.deleteUser(req, res);
+});
 
 export default Router;

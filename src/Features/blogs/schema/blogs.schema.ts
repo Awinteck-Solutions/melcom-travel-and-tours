@@ -12,12 +12,13 @@ const BlogsSchema = new Schema({
     },
     excerpt: {
         type: String,
-        required: true
+        required: false
     },
     category: {
-        type: String,
-        required: true
-    },
+        type: Schema.Types.ObjectId,
+        ref: 'BlogCategories',
+        required: true,
+      },
     author: {
         type: String,
         required: true

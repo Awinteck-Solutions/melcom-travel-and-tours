@@ -78,6 +78,8 @@ export class FlightsController {
         },
       });
 
+      console.log(response.data.GolApi)
+
       const golData = response.data.GolApi;
       const specialOffers =
         golData.ResponseDetail?.ListSpecialoffersResponse_1?.ListSpecialoffers
@@ -230,12 +232,14 @@ export class FlightsController {
     try {
       // Get parameters from request body for POST requests or query for GET requests
       const params = req.method === "POST" ? req.body : req.query;
-
+      
       const {
         origin,
         destination,
         departureDate,
         returnDate,
+        directFlightsOnly = false,
+        tolerance = 0,
         passengers = "ADT",
         adults = 1,
         children = 0,
@@ -281,6 +285,7 @@ export class FlightsController {
           Origin: origin + "+",
           Destination: destinationArray[0],
           DepartureDateTime: dateArray[0],
+          FlexDays: {Before: tolerance.toString(), After: tolerance.toString()},
         });
 
         // Subsequent legs: Previous destination (no "+") to next destination
@@ -289,6 +294,7 @@ export class FlightsController {
             Origin: destinationArray[i - 1], // Previous destination, no "+"
             Destination: destinationArray[i],
             DepartureDateTime: dateArray[i],
+            FlexDays: {Before: tolerance.toString(), After: tolerance.toString()},
           });
         }
       } else {
@@ -305,6 +311,7 @@ export class FlightsController {
           Origin: origin,
           Destination: destination,
           DepartureDateTime: departureDate,
+          FlexDays: {Before: tolerance.toString(), After: tolerance.toString()},
         });
 
         // Return flight - add return leg if returnDate is provided
@@ -316,6 +323,7 @@ export class FlightsController {
             Origin: destination,
             Destination: origin,
             DepartureDateTime: returnDate,
+            FlexDays: {Before: tolerance.toString(), After: tolerance.toString()},
           });
         }
       }
@@ -351,6 +359,8 @@ export class FlightsController {
       }
       console.log('searchedPassengers', searchedPassengers)
 
+      const directFlight = directFlightsOnly ? { DirectFlight: { } } : {};
+
       // Use the exact GOL API structure for flight search
       const golRequest = {
         GolApi: {
@@ -376,6 +386,7 @@ export class FlightsController {
                 SearchedPassenger: searchedPassengers,
               },
               FlightPreferences: {
+                ...directFlight,
                 IncludeCombinedFlights: {},
               },
             },
@@ -383,6 +394,7 @@ export class FlightsController {
         },
       };
 
+    
       const response = await axios.post(this.GOL_API_BASE_URL, golRequest, {
         headers: {
           "Content-Type": "application/json",
@@ -396,6 +408,10 @@ export class FlightsController {
       const flightOffers =
         golData.ResponseDetail?.SearchFlightsExtendedResponse_2?.FlightOffers ||
         [];
+      
+      const codeBook = golData.CodeBook;
+      
+      const SecurityContent = golData.SecurityContent;
 
         // console.log('golData', flightOffers)
       // Format flight results
@@ -407,18 +423,20 @@ export class FlightsController {
             // Extract pricing information - simplified
             const pricingDetails = offer.PricingDetails?.PricingDetail || [];
             const bestPrice =
-              pricingDetails.length > 0 ? pricingDetails[0] : null;
+              pricingDetails.length > 0 ? pricingDetails : [];
 
             // Extract flight segments - simplified
             const flightStreams = offer.FlightItinerary?.FlightStream || [];
             const segments = [];
+
+            const flightCombinations = offer.FlightCombinations?.FlightCombination || [];
+            
 
             flightStreams.forEach((stream) => {
               const options = stream.FlightOption || [];
               options.forEach((option) => {
                 const flightSegments =
                   option.FlightSegments?.FlightSegment || [];
-                console.log('flightSegments.length', flightSegments.length)
                 flightSegments.forEach((segment) => {
                   // Check if segment already exists to avoid duplicates
                   const segmentExists = segments.some(existingSegment => 
@@ -430,6 +448,7 @@ export class FlightsController {
                   
                   if (!segmentExists) {
                     segments.push({
+                      brandName: segment.BrandName,
                       flightNumber: segment.FlightNumber,
                       airline: {
                         code: segment.MarketingAirline,
@@ -437,18 +456,28 @@ export class FlightsController {
                           golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
                             (airline) => airline.Code === segment.MarketingAirline
                           )?.Name?.$t || segment.MarketingAirline,
+                        logoUrl:
+                          golData.CodeBook?.TransportCompanies?.TransportCompany?.find(
+                            (airline) => airline.Code === segment.MarketingAirline
+                          )?.LogoUrl?.$t || segment.MarketingAirline,
                       },
                       aircraft: segment.PlaneType,
                       departure: {
                         airport: segment.OriginAirport,
+                        origin: codeBook.Airports.Airport.find((airport) => airport.Code === segment.OriginAirport)?.$t || segment.OriginAirport,
                         time: segment.DepartureDateTime,
+                        timeZone: segment.DepartureTimezone,
                         terminal: segment.DepartureTerminal,
                       },
                       arrival: {
                         airport: segment.DestinationAirport,
+                        destination: codeBook.Airports.Airport.find((airport) => airport.Code === segment.DestinationAirport)?.$t || segment.DestinationAirport,
                         time: segment.ArrivalDateTime,
+                        timeZone: segment.ArrivalTimezone,
                         terminal: segment.ArrivalTerminal,
                       },
+                      marketingAirline: codeBook.TransportCompanies.TransportCompany.find((airline) => airline.Code === segment.MarketingAirline)?.Name?.$t || segment.MarketingAirline,
+                      operatingAirline: codeBook.TransportCompanies.TransportCompany.find((airline) => airline.Code === segment.OperatingAirline)?.Name?.$t || segment.OperatingAirline,
                       duration: segment.JourneyDuration,
                       cabinClass: segment.CabinClass,
                     });
@@ -457,21 +486,62 @@ export class FlightsController {
               });
             });
 
+            let allPrices = [];
             // Only add flights with valid pricing
-            if (bestPrice) {
-              flights.push({
-                price: {
-                  total: bestPrice.FlightPricing?.FlightPrice?.FullPrice || "0",
-                  perPassenger:
-                    bestPrice.FlightPricing?.FlightPrice
-                      ?.DisplayPricePerPassenger || "0",
-                  currency: golData.Settings?.Currency?.Code || "GHS",
-                },
-                segments: segments,
-                bookingReference: bestPrice.Key,
-                airline: segments[0]?.airline?.name || "Unknown",
+            if (bestPrice.length > 0) {
+              bestPrice.forEach((price, index) => {
+                allPrices.push({
+                  flightCombinations: flightCombinations.filter((combination) => combination.PricingDetailKey === price.Key).map((combination) => {return {
+                    key: combination.PricingDetailKey,
+                    uniformBrandName: combination.UniformBrandName,
+                    originalBrandName: combination.OriginalBrandName,
+                    reference: combination.References.Reference[0].$t,
+                    flightOptionCombination: combination.FlightOptionCombinations.FlightOptionCombination[0].FlightStreamKey,
+                    Key: combination.FlightOptionCombinations.FlightOptionCombination[0].Key,
+                  }})[0],
+                  price: {
+                    key: price.Key || index.toString(),
+                    reference: price.Key || null,
+                    uniformBrandName: price.UniformBrandName || null,
+                    total: price.FlightPricing?.FlightPrice?.FullPrice || "0",
+                    perPassenger:
+                      price.FlightPricing?.FlightPrice
+                        ?.DisplayPricePerPassenger || "0",
+                    currency: golData.Settings?.Currency?.Code || "N/A",
+                  },
+                  baggageLimit: {
+                    included: price.BaggageLimit?.Included || null,
+                    quantity: price.BaggageLimit?.Quantity || null,
+                    weight: price.BaggageLimit?.Weight || null,
+                    quantity_2: price.BaggageLimit?.Quantity_2 || null,
+                    weight_2: price.BaggageLimit?.Weight_2 || null,
+                    detailsAvailable: price.BaggageLimit?.DetailsAvailable || null,
+                    baggageSelectionAvailable: price.BaggageLimit?.BaggageSelectionAvailable || null,
+                  },
+                  cancelTicket: {
+                    amountAfterDeparture: price.CancelTicket?.AmountAfterDeparture || null,
+                    amountBeforeDeparture: price.CancelTicket?.AmountBeforeDeparture || null,
+                    included: price.CancelTicket?.Included || null,
+                    includedBeforeDeparture: price.CancelTicket?.IncludedBeforeDeparture || null,
+                    includedAfterDeparture: price.CancelTicket?.IncludedAfterDeparture || null,
+                  },
+                  changeTicket: {
+                    amountAfterDeparture: price.ChangeTicket?.AmountAfterDeparture || null,
+                    amountBeforeDeparture: price.ChangeTicket?.AmountBeforeDeparture || null,
+                    included: price.ChangeTicket?.Included || null,
+                    includedBeforeDeparture: price.ChangeTicket?.IncludedBeforeDeparture || null,
+                    includedAfterDeparture: price.ChangeTicket?.IncludedAfterDeparture || null,
+                  },
+                });
               });
             }
+
+            flights.push({
+              prices: allPrices,
+              segments: segments,
+              airline: segments[0]?.airline?.name || "Unknown",
+            });
+
           });
         }
       });
@@ -515,23 +585,32 @@ export class FlightsController {
   static async getAllFlightBookings(req: Request, res: Response) {
     try {
       const { Bookings } = await import("../../bookings/schema/bookings.schema");
-      const { status, userId } = req.query;
+      const { status, userId, page = 1, limit = 10 } = req.query;
 
       // Build filter
       let filter: any = { bookingType: "FLIGHT" };
       if (status) filter.status = status;
       if (userId) filter.userId = userId;
 
+      const skip = (Number(page) - 1) * Number(limit);
+      const total = await Bookings.countDocuments(filter);
+
       const bookings = await Bookings.find(filter)
         .sort({ bookingDate: -1 })
-        .limit(50);
+        .skip(skip)
+        .limit(Number(limit));
 
       return res.status(200).json({
         success: true,
         message: "Flight bookings retrieved successfully",
         data: {
           bookings: bookings,
-          total: bookings.length,
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            pages: Math.ceil(total / Number(limit))
+          }
         },
       });
     } catch (error) {

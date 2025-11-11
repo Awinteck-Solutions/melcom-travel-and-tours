@@ -46,7 +46,7 @@ export class AuthController {
 
       const user = new User({
         ...req.body,
-        role: req.body.role || "USER",
+        role: req.body.role.toUpperCase() || "USER",
         password: encryptedPassword,
         otp,
       });
@@ -125,13 +125,13 @@ export class AuthController {
           role: user.role,
         });
 
-        console.log('user: ', {
-            ...user._doc,
-            id: user._id,
-            image:  user.image && user.image !== null ? `${process.env.BASE_URL}/${user.image}` : null,
-            password: null,
-            token: token,
-          },)
+        // console.log('user: ', {
+        //     ...user._doc,
+        //     id: user._id,
+        //     image:  user.image && user.image !== null ? `${process.env.BASE_URL}/${user.image}` : null,
+        //     password: null,
+        //     token: token,
+        //   },)
         return res.json({
           status: true,
           message: "Login successful",

@@ -29,5 +29,17 @@ analyticsRoutes.get(
   "/total-contact-info",
   analyticsController.getContactInfoAnalytics.bind(analyticsController)
 );
+analyticsRoutes.get(
+  "/dashboard-overview",
+  analyticsController.getDashboardOverview.bind(analyticsController)
+);
+analyticsRoutes.get(
+  "/graph/user-signups",
+  analyticsController.getUserSignupsGraph.bind(analyticsController)
+);
+analyticsRoutes.get(
+  "/graph/checkout-bookings",
+  analyticsController.getCheckoutBookingsGraph.bind(analyticsController)
+);
 
 export default analyticsRoutes;

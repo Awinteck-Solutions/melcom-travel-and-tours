@@ -1,93 +1,103 @@
 import { Router } from "express";
+import { Request, Response } from "express";
 import { ContentController } from "../controllers/content.controller";
+import { upload } from "../../../helpers/uploader";
+import { authentification } from "../../../middlewares/authentication.middleware";
+import { authorization } from "../../../middlewares/authorization.middleware";
+import { Roles } from "../../../enums/roles.enum";
 
 const contentRoutes = Router();
 const contentController = new ContentController();
 
-// Content routes
-contentRoutes.get(
-  "/recommended-country-list",
-  contentController.getRecommendedCountries.bind(contentController)
-);
-contentRoutes.get(
-  "/recommended-country",
-  contentController.getRecommendedCountriesByFilter.bind(contentController)
-);
-
-// CRUD operations for recommended countries
-contentRoutes.post(
-  "/recommended-country-list",
-  contentController.createRecommendedCountry.bind(contentController)
-);
-contentRoutes.put(
-  "/recommended-country-list/:id",
-  contentController.updateRecommendedCountry.bind(contentController)
-);
-contentRoutes.delete(
-  "/recommended-country-list/:id",
-  contentController.deleteRecommendedCountry.bind(contentController)
-);
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+  files?: Express.Multer.File[];
+}
+ 
 contentRoutes.get(
   "/terms-and-conditions",
   contentController.getTermsAndConditions.bind(contentController)
 );
+contentRoutes.post(
+  "/terms-and-conditions",
+  contentController.createTermsAndConditions.bind(contentController)
+);
+contentRoutes.put(
+  "/terms-and-conditions/",
+  contentController.updateTermsAndConditions.bind(contentController)
+);
+
 contentRoutes.get(
   "/privacy-policy",
   contentController.getPrivacyPolicy.bind(contentController)
 );
+contentRoutes.post(
+  "/privacy-policy",
+  contentController.createPrivacyPolicy.bind(contentController)
+);
+contentRoutes.put(
+  "/privacy-policy",
+  contentController.updatePrivacyPolicy.bind(contentController)
+);
+
 contentRoutes.get(
   "/cookies",
   contentController.getCookiesPolicy.bind(contentController)
 );
-contentRoutes.get(
-  "/contact-info",
-  contentController.getContactInfo.bind(contentController)
-);
-
 contentRoutes.post(
-  "/contact-info",
-  contentController.postContactInfo.bind(contentController)
-);
-
-// update contact info
-contentRoutes.put(
-  "/contact-info/:id",
-  contentController.updateContactInfo.bind(contentController)
-);
-
-// Contact form routes
-contentRoutes.post(
-  "/contact-us-form",
-  contentController.submitContactForm.bind(contentController)
-);
-contentRoutes.get(
-  "/contact-us-form",
-  contentController.getContactFormSubmissions.bind(contentController)
+  "/cookies",
+  contentController.createCookiesPolicy.bind(contentController)
 );
 contentRoutes.put(
-  "/contact-us-form/:id",
-  contentController.updateContactFormStatus.bind(contentController)
+  "/cookies/:id",
+  contentController.updateCookiesPolicy.bind(contentController)
 );
-
+ 
 // Inquiry types
 contentRoutes.get(
   "/inquiry-types",
   contentController.getInquiryTypes.bind(contentController)
 );
-
-// FAQ routes
-contentRoutes.get("/faqs", contentController.getFAQs.bind(contentController));
+// Admin endpoint - Get all inquiry types (including deleted)
+contentRoutes.get(
+  "/inquiry-types/admin",
+  authentification,
+  authorization([Roles.ADMIN]),
+  contentController.getAllInquiryTypes.bind(contentController)
+);
 contentRoutes.post(
-  "/faqs",
-  contentController.createFAQ.bind(contentController)
+  "/inquiry-types",
+  contentController.createInquiryType.bind(contentController)
 );
 contentRoutes.put(
-  "/faqs/:id",
-  contentController.updateFAQ.bind(contentController)
+  "/inquiry-types/:id",
+  contentController.updateInquiryType.bind(contentController)
 );
 contentRoutes.delete(
-  "/faqs/:id",
-  contentController.deleteFAQ.bind(contentController)
+  "/inquiry-types/:id",
+  contentController.deleteInquiryType.bind(contentController)
+);
+
+
+// endpoint to upload image
+contentRoutes.post(
+  "/upload-image",
+  upload.single("image"),
+  (req: MulterRequest, res: Response) => {
+    contentController.uploadImage(req, res);
+  }
+);
+
+// endpoint to get images
+contentRoutes.get(
+  "/images",
+  contentController.getImages.bind(contentController)
+);
+
+// endpoint to delete image
+contentRoutes.delete(
+  "/images/:id",
+  contentController.deleteImage.bind(contentController)
 );
 
 export default contentRoutes;

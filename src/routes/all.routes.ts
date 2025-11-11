@@ -10,7 +10,12 @@ import contentRoutes from "../Features/content/route/content.route";
 import analyticsRoutes from "../Features/analytics/route/analytics.route";
 import bookingsRoutes from "../Features/bookings/route/bookings.route";
 import paymentsRoutes from "../Features/payments/route/payments.route";
+import countryListRoutes from "../Features/countryList/route/countryList.route";
+import supportFormsRoutes from "../Features/SupportForms/route/SupportForms.route";
+import faqsRoutes from "../Features/Faqs/route/Faqs.route";
 import userCheckoutRoutes from "../Features/userCheckout/route/userCheckout.route";
+import contactInfoRoutes from "../Features/ContactInfo/route/ContactInfo.route";
+import specialDealsRoutes from "../Features/SpecialDeals/route/SpecialDeals.route";
 
 const Router = express.Router();
 
@@ -22,6 +27,11 @@ Router.use("/users", userRoutes);
 Router.use("/", flightRoutes);
 Router.use("/", blogRoutes);
 Router.use("/", contentRoutes);
+Router.use("/", countryListRoutes);
+Router.use("/", supportFormsRoutes);
+Router.use("/", faqsRoutes);
+Router.use("/", contactInfoRoutes);
+Router.use("/", specialDealsRoutes);
 Router.use("/", bookingsRoutes);
 Router.use("/", analyticsRoutes);
 Router.use("/api/payments", paymentsRoutes);

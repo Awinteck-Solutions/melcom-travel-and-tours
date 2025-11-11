@@ -1,3 +1,5 @@
+import { Status } from "../enums/status.enum";
+
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema;
 
@@ -24,7 +26,7 @@ const userSchema = new Schema({
     },
     status: {
         type: String,
-        enum : ['ACTIVE','DEACTIVE'],
+        enum : Status,
         default: 'ACTIVE',
     },
 },  {timestamps: true})

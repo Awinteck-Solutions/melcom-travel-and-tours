@@ -3,7 +3,7 @@ export class BlogsDTO {
         title: string
         content: string
         excerpt: string
-        category: string
+        category: {}
         author: string
         imageUrl?: string
         tags: string[]

@@ -6,15 +6,29 @@ export class BlogsController {
     // Get all blogs with optional category filter
     async getBlogs(req: Request, res: Response) {
         try {
-            const { category } = req.query;
+            const { category, page = 1, limit = 10 } = req.query;
             const filter = category ? { category, status: 'PUBLISHED' } : { status: 'PUBLISHED' };
             
-            const blogs = await Blogs.find(filter).populate('category', 'name').sort({ publishedAt: -1 });
+            const skip = (Number(page) - 1) * Number(limit);
+            const total = await Blogs.countDocuments(filter);
+            
+            const blogs = await Blogs.find(filter)
+                .populate('category', 'name')
+                .sort({ publishedAt: -1 })
+                .skip(skip)
+                .limit(Number(limit));
+            
             const blogsDTO = blogs.map(blog => new BlogsDTO(blog));
             
             res.status(200).json({
                 success: true,
                 data: blogsDTO,
+                pagination: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total,
+                    pages: Math.ceil(total / Number(limit))
+                },
                 message: 'Blogs retrieved successfully'
             });
         } catch (error) {
@@ -26,6 +40,41 @@ export class BlogsController {
         }
     }
 
+    async getBlogsAdmin(req: Request, res: Response) {
+        try {
+            const { category, page = 1, limit = 10 } = req.query;
+            const filter = category ? { category} : {  };
+            
+            const skip = (Number(page) - 1) * Number(limit);
+            const total = await Blogs.countDocuments(filter);
+            
+            const blogs = await Blogs.find(filter)
+                .populate('category', 'name')
+                .sort({ publishedAt: -1 })
+                .skip(skip)
+                .limit(Number(limit));
+            
+            const blogsDTO = blogs.map(blog => new BlogsDTO(blog));
+            
+            res.status(200).json({
+                success: true,
+                data: blogsDTO,
+                pagination: {
+                    page: Number(page),
+                    limit: Number(limit),
+                    total,
+                    pages: Math.ceil(total / Number(limit))
+                },
+                message: 'Blogs retrieved successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Error retrieving blogs',
+                error: error.message
+            });
+        }
+    }
     // Get blog by ID
     async getBlogById(req: Request, res: Response) {
         try {

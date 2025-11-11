@@ -6,6 +6,7 @@ const blogsController = new BlogsController();
 
 // Blog routes
 blogRoutes.get("/blogs", blogsController.getBlogs.bind(blogsController));
+blogRoutes.get("/blogs-admin", blogsController.getBlogsAdmin.bind(blogsController));
 blogRoutes.get("/blogs/:id", blogsController.getBlogById.bind(blogsController));
 blogRoutes.post("/blogs", blogsController.createBlog.bind(blogsController));
 blogRoutes.put("/blogs/:id", blogsController.updateBlog.bind(blogsController));
