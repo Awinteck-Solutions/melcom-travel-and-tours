@@ -198,162 +198,188 @@ export class UserCheckoutController {
         );
         // Create GOL API reservation
         try {
-          const golReservationResponse = await this.createGOLReservation(
-            checkout
-          );
+          const golReservationResponse: any =
+            await this.createGOLReservation(checkout);
 
-          // Update checkout with GOL reservation ID
-          await UserCheckout.findByIdAndUpdate(checkout._id, {
-            status: checkoutStatus,
-            paymentStatus: paymentStatus,
-            transactionId: req.body.Data?.SalesInvoiceId,
-            golReservationResponse,
-            notes: `Payment - ${ResponseText} Completed Successfully`,
-          });
+          if (golReservationResponse) {
+            console.log("golReservationResponse", golReservationResponse);
+            // Handle array or single object
+            const reservations = Array.isArray(golReservationResponse)
+              ? golReservationResponse
+              : [golReservationResponse];
 
-          return res.status(200).json({
-            success: true,
-            message: "Payment callback processed successfully",
-          });
+            const response = await Promise.all(
+              reservations.map(async (reservation: any) => {
+                // Handle Documents.Document - could be array or single object
+                const documents = reservation.Documents?.Document
+                  ? Array.isArray(reservation.Documents.Document)
+                    ? reservation.Documents.Document
+                    : [reservation.Documents.Document]
+                  : [];
+
+                // Process documents with Promise.all to await all conversions
+                const processedDocuments = await Promise.all(
+                  documents.map(async (document: any) => ({
+                    mime: document.Mime,
+                    type: document.Type,
+                    encodedMethod: document.EncodedMethod,
+                    data: document.$t,
+                    html: await this.convertBase64ToTextHtml(document.$t),
+                  }))
+                );
+
+                // loop through the processedDocuments and get the html and send mail
+                for (const document of processedDocuments) {
+                  if (document.html && checkout.contactInfo?.email) {
+                    sendMail(
+                      checkout.contactInfo.email,
+                      checkout.contactInfo.name,
+                      "Melcom Travels - Flight Booking Confirmation",
+                      "golBookingHtml",
+                      document.html
+                    );
+                  }
+                }
+
+                return {
+                  reservationId: reservation.ReservationId,
+                  paymentStatus: reservation.PaymentStatus,
+                  reservationStatus: reservation.ReservationStatus,
+                  paymentConditions: reservation.PaymentConditions,
+                  flightPrice: reservation.FlightPrice,
+                  servicePrices: reservation.ServicePrices,
+                  document: processedDocuments,
+                };
+              })
+            );
+
+            checkout.status = "CONFIRMED";
+            await checkout.save();
+
+            console.log("response", response);
+            return res.status(200).json({
+              success: true,
+              message: "GOL booking created successfully",
+              data: response,
+            });
+          } else {
+            return res.status(500).json({
+              success: false,
+              message: "Failed to create GOL reservation",
+            });
+          }
         } catch (golError) {
           console.error("GOL reservation error:", golError);
           return res.status(500).json({
             success: false,
-            message: "Failed to create GOL reservation",
+            message: golError,
           });
         }
       }
 
       // Perform status check with Hubtel using ClientReference
+      else {
+        try {
+          const hubtelStatusCheck = await this.checkHubtelTransactionStatus(
+            ClientReference
+          );
+          console.log("Hubtel status check result:", hubtelStatusCheck);
+          if (
+            hubtelStatusCheck?.responseCode === "0000" &&
+            hubtelStatusCheck?.data?.status === "Paid"
+          ) {
+            checkoutStatus = "CONFIRMED";
+            paymentStatus = "PAID";
 
-      try {
-        const hubtelStatusCheck = await this.checkHubtelTransactionStatus(
-          ClientReference
-        );
-        console.log("Hubtel status check result:", hubtelStatusCheck);
-        if (
-          hubtelStatusCheck?.responseCode === "0000" &&
-          hubtelStatusCheck?.data?.status === "Paid"
-        ) {
-          checkoutStatus = "CONFIRMED";
-          paymentStatus = "PAID";
+            // Create GOL API reservation
+            try {
+              const golReservationResponse: any =
+                await this.createGOLReservation(checkout);
 
-          // Create GOL API reservation
-          try {
-            const golReservationResponse: any = await this.createGOLReservation(
-              checkout
-            );
+              if (golReservationResponse) {
+                console.log("golReservationResponse", golReservationResponse);
+                // Handle array or single object
+                const reservations = Array.isArray(golReservationResponse)
+                  ? golReservationResponse
+                  : [golReservationResponse];
 
-            if (golReservationResponse) {
-              console.log("golReservationResponse", golReservationResponse);
-              // Handle array or single object
-              const reservations = Array.isArray(golReservationResponse)
-                ? golReservationResponse
-                : [golReservationResponse];
+                const response = await Promise.all(
+                  reservations.map(async (reservation: any) => {
+                    // Handle Documents.Document - could be array or single object
+                    const documents = reservation.Documents?.Document
+                      ? Array.isArray(reservation.Documents.Document)
+                        ? reservation.Documents.Document
+                        : [reservation.Documents.Document]
+                      : [];
 
-              const response = await Promise.all(
-                reservations.map(async (reservation: any) => {
-                  // Handle Documents.Document - could be array or single object
-                  const documents = reservation.Documents?.Document
-                    ? Array.isArray(reservation.Documents.Document)
-                      ? reservation.Documents.Document
-                      : [reservation.Documents.Document]
-                    : [];
+                    // Process documents with Promise.all to await all conversions
+                    const processedDocuments = await Promise.all(
+                      documents.map(async (document: any) => ({
+                        mime: document.Mime,
+                        type: document.Type,
+                        encodedMethod: document.EncodedMethod,
+                        data: document.$t,
+                        html: await this.convertBase64ToTextHtml(document.$t),
+                      }))
+                    );
 
-                  // Process documents with Promise.all to await all conversions
-                  const processedDocuments = await Promise.all(
-                    documents.map(async (document: any) => ({
-                      mime: document.Mime,
-                      type: document.Type,
-                      encodedMethod: document.EncodedMethod,
-                      data: document.$t,
-                      html: await this.convertBase64ToTextHtml(document.$t),
-                    }))
-                  );
-
-                  // loop through the processedDocuments and get the html and send mail
-                  for (const document of processedDocuments) {
-                    if (document.html && checkout.contactInfo?.email) {
-                      sendMail(
-                        checkout.contactInfo.email,
-                        checkout.contactInfo.name,
-                        "Melcom Travels - Flight Booking Confirmation",
-                        "golBookingHtml",
-                        document.html
-                      );
+                    // loop through the processedDocuments and get the html and send mail
+                    for (const document of processedDocuments) {
+                      if (document.html && checkout.contactInfo?.email) {
+                        sendMail(
+                          checkout.contactInfo.email,
+                          checkout.contactInfo.name,
+                          "Melcom Travels - Flight Booking Confirmation",
+                          "golBookingHtml",
+                          document.html
+                        );
+                      }
                     }
-                  }
 
-                  return {
-                    reservationId: reservation.ReservationId,
-                    paymentStatus: reservation.PaymentStatus,
-                    reservationStatus: reservation.ReservationStatus,
-                    paymentConditions: reservation.PaymentConditions,
-                    flightPrice: reservation.FlightPrice,
-                    servicePrices: reservation.ServicePrices,
-                    document: processedDocuments,
-                  };
-                })
-              );
+                    return {
+                      reservationId: reservation.ReservationId,
+                      paymentStatus: reservation.PaymentStatus,
+                      reservationStatus: reservation.ReservationStatus,
+                      paymentConditions: reservation.PaymentConditions,
+                      flightPrice: reservation.FlightPrice,
+                      servicePrices: reservation.ServicePrices,
+                      document: processedDocuments,
+                    };
+                  })
+                );
 
-              checkout.status = "CONFIRMED";
-              await checkout.save();
-              
-              console.log("response", response);
-              return res.status(200).json({
-                success: true,
-                message: "GOL booking created successfully",
-                data: response,
-              });
-            } else {
+                checkout.status = "CONFIRMED";
+                await checkout.save();
+
+                console.log("response", response);
+                return res.status(200).json({
+                  success: true,
+                  message: "GOL booking created successfully",
+                  data: response,
+                });
+              } else {
+                return res.status(500).json({
+                  success: false,
+                  message: "Failed to create GOL reservation",
+                });
+              }
+            } catch (golError) {
+              console.error("GOL reservation error:", golError);
               return res.status(500).json({
                 success: false,
-                message: "Failed to create GOL reservation",
+                message: golError,
               });
             }
-          } catch (golError) {
-            console.error("GOL reservation error:", golError);
-            return res.status(500).json({
-              success: false,
-              message: golError,
-            });
           }
-
-          // // Create GOL API reservation
-          // try {
-          //   const golReservationResponse = await this.createGOLReservation(
-          //     checkout
-          //   );
-
-          //   // Update checkout with GOL reservation ID
-          //   await UserCheckout.findByIdAndUpdate(checkout._id, {
-          //     status: checkoutStatus,
-          //     paymentStatus: paymentStatus,
-          //     transactionId: hubtelStatusCheck?.transactionId,
-          //     golReservationResponse,
-          //     notes: `Payment - ${ResponseText} Completed Successfully`,
-          //   });
-
-          //   return res.status(200).json({
-          //     success: true,
-          //     message: "Payment callback processed successfully",
-          //   });
-          // } catch (golError) {
-          //   console.error("GOL reservation error:", golError);
-          //   return res.status(500).json({
-          //     success: false,
-          //     message: "Failed to create GOL reservation",
-          //   });
-          // }
+        } catch (statusError) {
+          console.error("Hubtel status check error:", statusError);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to check Hubtel transaction status",
+            error: statusError.message,
+          });
+          // Continue with callback data if status check fails
         }
-      } catch (statusError) {
-        console.error("Hubtel status check error:", statusError);
-        return res.status(500).json({
-          success: false,
-          message: "Failed to check Hubtel transaction status",
-          error: statusError.message,
-        });
-        // Continue with callback data if status check fails
       }
     } catch (error) {
       console.error("Payment callback error:", error);
