@@ -662,6 +662,10 @@ export class UserCheckoutController {
         throw new Error(
           golData?.BookReservationsError_3?.SystemRequestError_1?.Error
         );
+      }
+      else if (golData?.BookReservationsError_3?.Error) {
+        let error = golData?.BookReservationsError_3?.Error.$t;
+        throw new Error(error);
       } else {
         throw new Error("Failed internally and from GOL API response");
       }
