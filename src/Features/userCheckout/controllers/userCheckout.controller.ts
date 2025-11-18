@@ -444,7 +444,7 @@ export class UserCheckoutController {
                   Parameters: {
                     ParameterGroup: [
                       // Passengers
-                      {Code: "passenger", ParameterGroup: passengerParameters},
+                      {Code: "passengers", ParameterGroup: passengerParameters},
                       // Contact
                       {
                         Code: "contact",
@@ -547,15 +547,16 @@ export class UserCheckoutController {
       
       // Extract reservation ID from response
       const golData =
-        golResponse.data?.GolApi?.ResponseDetail?.BookReservationsResponse_3;
-      if (golData?.BookedReservations) {
+        golResponse.data?.GolApi?.ResponseDetail;
+      if (golData?.BookReservationsResponse_3?.BookedReservations) {
         const reservation = golData?.BookedReservations?.BookedReservation[0];
         console.log("reservation", reservation);
         const reservationId = reservation?.ReservationId || null;
         return reservationId;
 
-      } else if (golData?.ErrorMessage) {
+      } else if (golData?.BookReservationsError_3?.ErrorMessage) {
         console.log("golData?.ErrorMessage", golData?.ErrorMessage);
+        console.log("golData?.ErrorDetails", golData?.ErrorDetails);
         throw new Error(golData?.ErrorMessage);
       } else {
         throw new Error("Failed to get reservation ID from GOL API response");
