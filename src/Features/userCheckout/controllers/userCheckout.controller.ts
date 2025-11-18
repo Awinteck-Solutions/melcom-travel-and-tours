@@ -360,8 +360,7 @@ export class UserCheckoutController {
               },
             ],
           },
-          ParameterGroup: [
-            {
+          ParameterGroup: {
               Code: "passengerPerson",
               ParameterElement: [
                 {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
@@ -376,19 +375,8 @@ export class UserCheckoutController {
                   Format: "ascii_alphabet",
                 },
               ],
-            },
-            {
-              Code: "passengerServices",
-              ParameterElement: [
-                {Name: "passenger_frequent_flyer", $t: ""},
-                {
-                  Name: "passenger_frequent_flyer_number",
-                  $t: "",
-                  Format: "alphanumeric",
-                },
-              ],
-            },
-          ],
+            }
+          ,
         })
       );
 
