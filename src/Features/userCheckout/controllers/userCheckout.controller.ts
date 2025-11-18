@@ -287,7 +287,7 @@ export class UserCheckoutController {
   static async testGOlBooking(req: Request, res: Response) {
     try {
       const bookingReference = req.params.bookingReference;
-console.log("bookingReference", bookingReference);
+      console.log("bookingReference", bookingReference);
       // Find checkout by client reference (booking reference)
       const checkout = await UserCheckout.findOne({
         bookingReference: bookingReference,
@@ -307,13 +307,13 @@ console.log("bookingReference", bookingReference);
           checkout
         );
 
-        console.log('golReservationResponse', golReservationResponse)
+        console.log("golReservationResponse", golReservationResponse);
 
         return res.status(200).json({
           success: true,
           message: "GOL booking created successfully",
           // data: golReservationResponse,
-          checkout
+          checkout,
         });
       } catch (golError) {
         console.error("GOL reservation error:", golError);
@@ -411,26 +411,39 @@ console.log("bookingReference", bookingReference);
           },
           ParameterGroup: {
             Code: "passengerPerson",
-            ParameterElement: [
-              {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
-              {
-                Name: "passenger_firstname",
-                $t: traveler.GivenName || "",
-                Format: "ascii_alphabet",
-              },
-              {
-                Name: "passenger_lastname",
-                $t: traveler.Surname || "",
-                Format: "ascii_alphabet",
-              },
+            ParameterElement:
               traveler.PassengerType === "INF"
-                ? {
-                    Name: "passenger_birth_date",
-                    $t: traveler.BirthDate || "",
-                    Format: "date",
-                  }
-                : {},
-            ],
+                ? [
+                    {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
+                    {
+                      Name: "passenger_firstname",
+                      $t: traveler.GivenName || "",
+                      Format: "ascii_alphabet",
+                    },
+                    {
+                      Name: "passenger_lastname",
+                      $t: traveler.Surname || "",
+                      Format: "ascii_alphabet",
+                    },
+                    {
+                      Name: "passenger_birth_date",
+                      $t: traveler.BirthDate || "",
+                      Format: "date",
+                    },
+                  ]
+                : [
+                    {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
+                    {
+                      Name: "passenger_firstname",
+                      $t: traveler.GivenName || "",
+                      Format: "ascii_alphabet",
+                    },
+                    {
+                      Name: "passenger_lastname",
+                      $t: traveler.Surname || "",
+                      Format: "ascii_alphabet",
+                    }
+                  ],
           },
         })
       );
@@ -572,13 +585,12 @@ console.log("bookingReference", bookingReference);
             },
           },
         },
-      }; 
+      };
       // store the golRequest in a file
       fs.writeFileSync("golRequest.json", JSON.stringify(golRequest, null, 2));
 
-
       console.log("createGOLReservation-priceAmount", priceAmount);
-      console.log('THIS.GOL_API_BASE_URL', this.GOL_API_BASE_URL)
+      console.log("THIS.GOL_API_BASE_URL", this.GOL_API_BASE_URL);
       // Make request to GOL API
       const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
         headers: {
@@ -611,9 +623,7 @@ console.log("bookingReference", bookingReference);
         throw new Error(
           golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage
         );
-      } else if (
-        golData?.BookReservationsError_3?.SystemRequestError_1
-      ) {
+      } else if (golData?.BookReservationsError_3?.SystemRequestError_1) {
         console.log(
           "golData?.ErrorDetails",
           golData?.BookReservationsError_3?.SystemRequestError_1?.Error[0]
@@ -624,12 +634,11 @@ console.log("bookingReference", bookingReference);
       } else {
         throw new Error("Failed internally and from GOL API response");
       }
-      
     } catch (error) {
       console.error("GOL reservation creation error:", error);
       throw new Error(
         `GOL reservation failed: ${error.response?.data || error.message}`
-      );    
+      );
       return null;
     }
   }

@@ -71,8 +71,7 @@
                           "Name": "passenger_lastname",
                           "$t": "Sampana",
                           "Format": "ascii_alphabet"
-                        },
-                        {}
+                        }
                       ]
                     }
                   }
