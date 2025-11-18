@@ -3,7 +3,7 @@ import axios from "axios";
 import fs from "fs";
 import UserCheckout from "../schema/userCheckout.schema";
 import {CheckoutRequestDTO, CheckoutResponseDTO} from "../dto/userCheckout.dto";
-import { sendMail } from "../../../helpers/emailer";
+import {sendMail} from "../../../helpers/emailer";
 
 export class UserCheckoutController {
   private static HUBTEL_API_BASE_URL = "https://payproxyapi.hubtel.com";
@@ -240,30 +240,111 @@ export class UserCheckoutController {
 
           // Create GOL API reservation
           try {
-            const golReservationResponse = await this.createGOLReservation(
+            const golReservationResponse: any = await this.createGOLReservation(
               checkout
             );
 
-            // Update checkout with GOL reservation ID
-            await UserCheckout.findByIdAndUpdate(checkout._id, {
-              status: checkoutStatus,
-              paymentStatus: paymentStatus,
-              transactionId: hubtelStatusCheck?.transactionId,
-              golReservationResponse,
-              notes: `Payment - ${ResponseText} Completed Successfully`,
-            });
+            if (golReservationResponse) {
+              console.log("golReservationResponse", golReservationResponse);
+              // Handle array or single object
+              const reservations = Array.isArray(golReservationResponse)
+                ? golReservationResponse
+                : [golReservationResponse];
 
-            return res.status(200).json({
-              success: true,
-              message: "Payment callback processed successfully",
-            });
+              const response = await Promise.all(
+                reservations.map(async (reservation: any) => {
+                  // Handle Documents.Document - could be array or single object
+                  const documents = reservation.Documents?.Document
+                    ? Array.isArray(reservation.Documents.Document)
+                      ? reservation.Documents.Document
+                      : [reservation.Documents.Document]
+                    : [];
+
+                  // Process documents with Promise.all to await all conversions
+                  const processedDocuments = await Promise.all(
+                    documents.map(async (document: any) => ({
+                      mime: document.Mime,
+                      type: document.Type,
+                      encodedMethod: document.EncodedMethod,
+                      data: document.$t,
+                      html: await this.convertBase64ToTextHtml(document.$t),
+                    }))
+                  );
+
+                  // loop through the processedDocuments and get the html and send mail
+                  for (const document of processedDocuments) {
+                    if (document.html && checkout.contactInfo?.email) {
+                      sendMail(
+                        checkout.contactInfo.email,
+                        checkout.contactInfo.name,
+                        "Melcom Travels - Flight Booking Confirmation",
+                        "golBookingHtml",
+                        document.html
+                      );
+                    }
+                  }
+
+                  return {
+                    reservationId: reservation.ReservationId,
+                    paymentStatus: reservation.PaymentStatus,
+                    reservationStatus: reservation.ReservationStatus,
+                    paymentConditions: reservation.PaymentConditions,
+                    flightPrice: reservation.FlightPrice,
+                    servicePrices: reservation.ServicePrices,
+                    document: processedDocuments,
+                  };
+                })
+              );
+
+              checkout.status = "CONFIRMED";
+              await checkout.save();
+              
+              console.log("response", response);
+              return res.status(200).json({
+                success: true,
+                message: "GOL booking created successfully",
+                data: response,
+              });
+            } else {
+              return res.status(500).json({
+                success: false,
+                message: "Failed to create GOL reservation",
+              });
+            }
           } catch (golError) {
             console.error("GOL reservation error:", golError);
             return res.status(500).json({
               success: false,
-              message: "Failed to create GOL reservation",
+              message: golError,
             });
           }
+
+          // // Create GOL API reservation
+          // try {
+          //   const golReservationResponse = await this.createGOLReservation(
+          //     checkout
+          //   );
+
+          //   // Update checkout with GOL reservation ID
+          //   await UserCheckout.findByIdAndUpdate(checkout._id, {
+          //     status: checkoutStatus,
+          //     paymentStatus: paymentStatus,
+          //     transactionId: hubtelStatusCheck?.transactionId,
+          //     golReservationResponse,
+          //     notes: `Payment - ${ResponseText} Completed Successfully`,
+          //   });
+
+          //   return res.status(200).json({
+          //     success: true,
+          //     message: "Payment callback processed successfully",
+          //   });
+          // } catch (golError) {
+          //   console.error("GOL reservation error:", golError);
+          //   return res.status(500).json({
+          //     success: false,
+          //     message: "Failed to create GOL reservation",
+          //   });
+          // }
         }
       } catch (statusError) {
         console.error("Hubtel status check error:", statusError);
@@ -349,8 +430,8 @@ export class UserCheckoutController {
                   sendMail(
                     checkout.contactInfo.email,
                     checkout.contactInfo.name,
-                    'Melcom Travels - Flight Booking Confirmation',
-                    'golBookingHtml',
+                    "Melcom Travels - Flight Booking Confirmation",
+                    "golBookingHtml",
                     document.html
                   );
                 }
@@ -384,7 +465,7 @@ export class UserCheckoutController {
         console.error("GOL reservation error:", golError);
         return res.status(500).json({
           success: false,
-          message: "Failed to create GOL reservation",
+          message: golError,
         });
       }
     } catch (error) {
