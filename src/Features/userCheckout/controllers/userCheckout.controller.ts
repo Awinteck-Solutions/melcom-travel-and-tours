@@ -543,23 +543,23 @@ export class UserCheckoutController {
 
       console.log("golResponse1", golResponse.data);
       console.log("golResponse2", golResponse.data.GolApi);
-      console.log("golResponse3", golResponse.data.GolApi.ResponseDetail);
       
       // Extract reservation ID from response
-      const golData =
-        golResponse.data?.GolApi?.ResponseDetail;
+      const golData = golResponse.data.GolApi.ResponseDetail;
+
+      console.log("golResponse3 updated", golData);
       if (golData?.BookReservationsResponse_3?.BookedReservations) {
         const reservation = golData?.BookedReservations?.BookedReservation[0];
         console.log("reservation", reservation);
         const reservationId = reservation?.ReservationId || null;
         return reservationId;
 
-      } else if (golData?.BookReservationsError_3?.ErrorMessage) {
-        console.log("golData?.ErrorMessage", golData?.ErrorMessage);
-        console.log("golData?.ErrorDetails", golData?.ErrorDetails);
-        throw new Error(golData?.ErrorMessage);
+      } else if (golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage) {
+        console.log("golData?.ErrorMessage", golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage);
+        console.log("golData?.ErrorDetails", golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorDetails);
+        throw new Error(golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage);
       } else {
-        throw new Error("Failed to get reservation ID from GOL API response");
+        throw new Error("Failed internally and from GOL API response");
       } 
     } catch (error) {
       console.error("GOL reservation creation error:", error);
