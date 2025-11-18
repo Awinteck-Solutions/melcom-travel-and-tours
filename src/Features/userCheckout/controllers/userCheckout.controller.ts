@@ -534,8 +534,6 @@ export class UserCheckoutController {
         },
       });
 
-      console.log("golResponse1", golResponse.data);
-      console.log("golResponse2", golResponse.data.GolApi);
       
       // Extract reservation ID from response
       const golData = golResponse.data.GolApi.ResponseDetail;
@@ -551,8 +549,12 @@ export class UserCheckoutController {
         console.log("golData?.ErrorMessage", golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage);
         console.log("golData?.ErrorDetails", golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorDetails);
         throw new Error(golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage);
+      } else if (golData?.BookReservationsError_3?.SystemRequestError_1?.Error) {
+        console.log("golData?.ErrorDetails", golData?.BookReservationsError_3?.SystemRequestError_1?.Error);
+        throw new Error(golData?.BookReservationsError_3?.SystemRequestError_1?.Error);
       } else {
-        throw new Error("Failed internally and from GOL API response");
+        // throw new Error("Failed internally and from GOL API response");
+        return null;
       } 
     } catch (error) {
       console.error("GOL reservation creation error:", error);
