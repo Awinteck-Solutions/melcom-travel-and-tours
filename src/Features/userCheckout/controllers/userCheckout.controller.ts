@@ -532,11 +532,13 @@ export class UserCheckoutController {
         },
       });
 
-      console.log('golResponse', golResponse.data.GolApi.ResponseDetail.BookReservationsResponse_3.BookedReservations.BookedReservation[0].ReservationCode)
+      console.log('golResponse1', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations)
+      console.log('golResponse2', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation)
+      console.log('golResponse3', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation[0])
       // Extract reservation ID from response
       const golData = golResponse.data?.GolApi;
       const reservation = golData?.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation[0];
-      const reservationId = reservation.ReservationId || null;
+      const reservationId = reservation?.ReservationId || null;
 
       // if (!reservationId) {
       //   throw new Error("Failed to get reservation ID from GOL API response");
