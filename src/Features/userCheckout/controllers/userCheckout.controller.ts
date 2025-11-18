@@ -532,9 +532,10 @@ export class UserCheckoutController {
         },
       });
 
-      console.log('golResponse1', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations)
-      console.log('golResponse2', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation)
-      console.log('golResponse3', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation[0])
+      console.log('golResponse1', golResponse.data)
+      console.log('golResponse2', golResponse.data.GolApi)
+      console.log('golResponse3', golResponse.data.GolApi.ResponseDetail)
+      console.log('golResponse3', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations)
       // Extract reservation ID from response
       const golData = golResponse.data?.GolApi;
       const reservation = golData?.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation[0];
