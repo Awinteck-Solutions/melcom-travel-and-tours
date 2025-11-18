@@ -588,8 +588,7 @@ export class UserCheckoutController {
       };
       // store the golRequest in a file
       fs.writeFileSync("golRequest.json", JSON.stringify(golRequest, null, 2));
-
-      console.log("createGOLReservation-priceAmount", priceAmount);
+ 
       console.log("THIS.GOL_API_BASE_URL", this.GOL_API_BASE_URL);
       // Make request to GOL API
       const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
@@ -598,12 +597,12 @@ export class UserCheckoutController {
           Accept: "application/json, text/plain, */*",
         },
       });
-
-      console.log("createGOLReservation-priceAmount22", priceAmount);
+ 
       // Extract reservation ID from response
       const golData = golResponse.data.GolApi.ResponseDetail;
 
-      console.log("golResponse3 updated", golData.SystemRequestError_1.Error);
+      // console.log("golResponse3 updated", golData.SystemRequestError_1.Error);
+      fs.writeFileSync("golResponse.json", JSON.stringify(golData, null, 2));
       if (golData?.BookReservationsResponse_3?.BookedReservations) {
         const reservation = golData?.BookedReservations?.BookedReservation[0];
         console.log("reservation", reservation);
