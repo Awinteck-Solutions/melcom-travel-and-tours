@@ -374,11 +374,11 @@ export class UserCheckoutController {
                   $t: traveler.Surname || "",
                   Format: "ascii_alphabet",
                 },
-                traveler.PassengerType === "INF" && {
+                traveler.PassengerType === "INF" ? {
                   "Name": "passenger_birth_date",
                   "$t": traveler.BirthDate || "",
                   "Format": "date"
-              }
+              } : {}
               ],
             }
           ,
