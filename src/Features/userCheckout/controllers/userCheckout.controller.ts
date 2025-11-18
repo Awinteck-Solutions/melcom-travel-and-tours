@@ -374,6 +374,11 @@ export class UserCheckoutController {
                   $t: traveler.Surname || "",
                   Format: "ascii_alphabet",
                 },
+                traveler.PassengerType === "INF" && {
+                  "Name": "passenger_birth_date",
+                  "$t": traveler.BirthDate || "",
+                  "Format": "date"
+              }
               ],
             }
           ,
@@ -432,7 +437,7 @@ export class UserCheckoutController {
                   Parameters: {
                     ParameterGroup: [
                       // Passengers
-                      {Code: "passengers", ParameterGroup: passengerParameters},
+                      {Code: "passengers", ParameterGroup: passengerParameters.length > 1 ? passengerParameters : passengerParameters[0]},
                       // Contact
                       {
                         Code: "contact",
