@@ -21,6 +21,8 @@ Router.get("/status/:checkoutId", UserCheckoutController.checkPaymentStatus.bind
 // Get all checkouts
 Router.get("/", UserCheckoutController.getAllCheckouts.bind(UserCheckoutController));
 
+// Test GOL booking
+Router.get("/test/:bookingReference", UserCheckoutController.testGOlBooking.bind(UserCheckoutController));
 // Admin routes
 // Get all checkouts for admin (admin only)
 Router.get(

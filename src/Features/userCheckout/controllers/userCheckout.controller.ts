@@ -283,6 +283,55 @@ export class UserCheckoutController {
     }
   }
 
+  // Handle Hubtel payment callback
+  static async testGOlBooking(req: Request, res: Response) {
+    try {
+      const bookingReference = req.params.bookingReference;
+console.log("bookingReference", bookingReference);
+      // Find checkout by client reference (booking reference)
+      const checkout = await UserCheckout.findOne({
+        bookingReference: bookingReference,
+      });
+
+      if (!checkout) {
+        console.error("Checkout not found for callback:", bookingReference);
+        return res.status(404).json({
+          success: false,
+          message: "Checkout not found",
+        });
+      }
+
+      // Create GOL API reservation
+      try {
+        const golReservationResponse = await this.createGOLReservation(
+          checkout
+        );
+
+        console.log('golReservationResponse', golReservationResponse)
+
+        return res.status(200).json({
+          success: true,
+          message: "GOL booking created successfully",
+          // data: golReservationResponse,
+          checkout
+        });
+      } catch (golError) {
+        console.error("GOL reservation error:", golError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to create GOL reservation",
+        });
+      }
+    } catch (error) {
+      console.error("Payment callback error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to process payment callback",
+        error: error.message,
+      });
+    }
+  }
+
   // Check Hubtel transaction status using ClientReference
   private static async checkHubtelTransactionStatus(
     clientReference: string
@@ -361,27 +410,28 @@ export class UserCheckoutController {
             ],
           },
           ParameterGroup: {
-              Code: "passengerPerson",
-              ParameterElement: [
-                {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
-                {
-                  Name: "passenger_firstname",
-                  $t: traveler.GivenName || "",
-                  Format: "ascii_alphabet",
-                },
-                {
-                  Name: "passenger_lastname",
-                  $t: traveler.Surname || "",
-                  Format: "ascii_alphabet",
-                },
-                traveler.PassengerType === "INF" ? {
-                  "Name": "passenger_birth_date",
-                  "$t": traveler.BirthDate || "",
-                  "Format": "date"
-              } : {}
-              ],
-            }
-          ,
+            Code: "passengerPerson",
+            ParameterElement: [
+              {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
+              {
+                Name: "passenger_firstname",
+                $t: traveler.GivenName || "",
+                Format: "ascii_alphabet",
+              },
+              {
+                Name: "passenger_lastname",
+                $t: traveler.Surname || "",
+                Format: "ascii_alphabet",
+              },
+              traveler.PassengerType === "INF"
+                ? {
+                    Name: "passenger_birth_date",
+                    $t: traveler.BirthDate || "",
+                    Format: "date",
+                  }
+                : {},
+            ],
+          },
         })
       );
 
@@ -437,7 +487,13 @@ export class UserCheckoutController {
                   Parameters: {
                     ParameterGroup: [
                       // Passengers
-                      {Code: "passengers", ParameterGroup: passengerParameters.length > 1 ? passengerParameters : passengerParameters[0]},
+                      {
+                        Code: "passengers",
+                        ParameterGroup:
+                          passengerParameters.length > 1
+                            ? passengerParameters
+                            : passengerParameters[0],
+                      },
                       // Contact
                       {
                         Code: "contact",
@@ -516,16 +572,13 @@ export class UserCheckoutController {
             },
           },
         },
-      };
-
-      console.log(
-        "golRequest",
-        golRequest.GolApi.RequestDetail.BookReservationsRequest_3.toString()
-      );
+      }; 
       // store the golRequest in a file
       fs.writeFileSync("golRequest.json", JSON.stringify(golRequest, null, 2));
 
 
+      console.log("createGOLReservation-priceAmount", priceAmount);
+      console.log('THIS.GOL_API_BASE_URL', this.GOL_API_BASE_URL)
       // Make request to GOL API
       const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
         headers: {
@@ -534,7 +587,7 @@ export class UserCheckoutController {
         },
       });
 
-      
+      console.log("createGOLReservation-priceAmount22", priceAmount);
       // Extract reservation ID from response
       const golData = golResponse.data.GolApi.ResponseDetail;
 
@@ -544,23 +597,40 @@ export class UserCheckoutController {
         console.log("reservation", reservation);
         const reservationId = reservation?.ReservationId || null;
         return reservationId;
-
-      } else if (golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage) {
-        console.log("golData?.ErrorMessage", golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage);
-        console.log("golData?.ErrorDetails", golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorDetails);
-        throw new Error(golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage);
-      } else if (golData?.BookReservationsError_3?.SystemRequestError_1?.Error) {
-        console.log("golData?.ErrorDetails", golData?.BookReservationsError_3?.SystemRequestError_1?.Error);
-        throw new Error(golData?.BookReservationsError_3?.SystemRequestError_1?.Error);
+      } else if (
+        golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage
+      ) {
+        console.log(
+          "golData?.ErrorMessage",
+          golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage
+        );
+        console.log(
+          "golData?.ErrorDetails",
+          golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorDetails
+        );
+        throw new Error(
+          golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage
+        );
+      } else if (
+        golData?.BookReservationsError_3?.SystemRequestError_1
+      ) {
+        console.log(
+          "golData?.ErrorDetails",
+          golData?.BookReservationsError_3?.SystemRequestError_1?.Error[0]
+        );
+        throw new Error(
+          golData?.BookReservationsError_3?.SystemRequestError_1?.Error
+        );
       } else {
-        // throw new Error("Failed internally and from GOL API response");
-        return null;
-      } 
+        throw new Error("Failed internally and from GOL API response");
+      }
+      
     } catch (error) {
       console.error("GOL reservation creation error:", error);
       throw new Error(
         `GOL reservation failed: ${error.response?.data || error.message}`
-      );
+      );    
+      return null;
     }
   }
 

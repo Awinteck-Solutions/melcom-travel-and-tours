@@ -1,0 +1,167 @@
+{
+  "GolApi": {
+    "PassiveSessionId": "149827275",
+    "Authorization": {
+      "Requestor": {
+        "ClientId": "melcomgolapiTEST",
+        "Password": "SanD8RALE_Daniela"
+      }
+    },
+    "Settings": {
+      "Localization": {
+        "Language": "en",
+        "Country": "CZ"
+      }
+    },
+    "RequestDetail": {
+      "BookReservationsRequest_3": {
+        "TicketingCombination": {
+          "TicketplaceOption": {
+            "Id": "781",
+            "Rate": "0",
+            "RatedFor": "abs",
+            "Price": "0"
+          },
+          "PaymentformOption": {
+            "Id": "2473",
+            "Rate": "0",
+            "RatedFor": "abs",
+            "Price": "0"
+          }
+        },
+        "BookReservationsWithParameters": {
+          "BookReservationWithParameters": {
+            "ExternalReservationId": "MT176349083363171D7KE",
+            "PricedReference": {
+              "Price": "5378",
+              "Reference": [
+                {
+                  "$t": "null/eJzFUztvgzAQ7k/peJaa6GzjmrBRShJUXlKIAlPVsUOXbP33vbONwFG6dCmc8Pme33c2ACAFAAoYxn7sLgIm2goQLKSp2NmunKRybl4UAur9hYNRmY2UG5UOEjMSpFQXHrkk2RfXWy9AUR3bpIJb9QMeDTZcfaDqr/NHcsflVU8UW7JmPCZw2Q6tDD1p1VTYIOLj2O2dTd3axMJOh7zAp+i6G+QqS8wvpJJMmZiUfo5JJf9Daj7IGasZlM7MLsYKHGAJsFYot4TZKGu3Hvt99XA8CXcf0F2EmNMfq+FKWidTaOFFBMRpIpdsToX+/FJXdA9pbjTAsmybdqLEQ15Xddm9n/O+oqDr59fH9XuuJ8Ns/Wj51P0ye2iirLEYpbc7a43beazBi/e9KGBpgQ50MOHK5H49N7NVd3oefgAcH7KY011d"
+                }
+              ]
+            },
+            "Parameters": {
+              "ParameterGroup": [
+                {
+                  "Code": "passengers",
+                  "ParameterGroup": {
+                    "Code": "passenger",
+                    "Index": "0",
+                    "AdditionalInfo": {
+                      "Info": [
+                        {
+                          "Code": "passengerType",
+                          "$t": "ADT"
+                        }
+                      ]
+                    },
+                    "ParameterGroup": {
+                      "Code": "passengerPerson",
+                      "ParameterElement": [
+                        {
+                          "Name": "passenger_title",
+                          "$t": "Mr"
+                        },
+                        {
+                          "Name": "passenger_firstname",
+                          "$t": "Barnabas",
+                          "Format": "ascii_alphabet"
+                        },
+                        {
+                          "Name": "passenger_lastname",
+                          "$t": "Sampana",
+                          "Format": "ascii_alphabet"
+                        },
+                        {}
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Code": "contact",
+                  "ParameterGroup": [
+                    {
+                      "Code": "elements",
+                      "ParameterElement": {
+                        "Name": "contact_name",
+                        "$t": "Barnabas Sampana"
+                      }
+                    },
+                    {
+                      "Code": "telephone",
+                      "ParameterElement": [
+                        {
+                          "Name": "contact_phone_country",
+                          "$t": "+233",
+                          "Format": "country_calling_code"
+                        },
+                        {
+                          "Name": "contact_phone_number",
+                          "$t": "0547785025",
+                          "Format": "number"
+                        }
+                      ]
+                    },
+                    {
+                      "Code": "elements",
+                      "ParameterElement": {
+                        "Name": "contact_email",
+                        "$t": "awim@ksd.com",
+                        "Format": "email"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "Code": "company",
+                  "ParameterGroup": {
+                    "Code": "billing",
+                    "ParameterElement": [
+                      {
+                        "Name": "company_billing_company",
+                        "$t": ""
+                      },
+                      {
+                        "Name": "company_billing_id",
+                        "$t": "",
+                        "Format": "alphanumeric"
+                      },
+                      {
+                        "Name": "company_billing_tax_id",
+                        "$t": "",
+                        "Format": "alphanumeric"
+                      },
+                      {
+                        "Name": "company_billing_street",
+                        "$t": ""
+                      },
+                      {
+                        "Name": "company_billing_city",
+                        "$t": ""
+                      },
+                      {
+                        "Name": "company_billing_zipcode",
+                        "$t": ""
+                      },
+                      {
+                        "Name": "company_billing_country",
+                        "$t": "GH"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "Code": "other",
+                  "ParameterElement": {
+                    "Name": "other_remark",
+                    "$t": "Payment - undefined Completed Successfully"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
