@@ -60,6 +60,11 @@ export interface TravelerDTO {
 export interface CheckoutRequestDTO {
   flight: FlightDTO;
   Traveler: TravelerDTO[];
+  contactInfo: {
+    email: string;
+    phone: string;
+    name: string;
+  }
 }
 
 export interface CheckoutResponseDTO {

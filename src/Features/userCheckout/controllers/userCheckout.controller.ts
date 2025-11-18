@@ -1,14 +1,16 @@
-import { Request, Response } from "express";
+import {Request, Response} from "express";
 import axios from "axios";
-     import UserCheckout from "../schema/userCheckout.schema";
-import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto";
+import UserCheckout from "../schema/userCheckout.schema";
+import {CheckoutRequestDTO, CheckoutResponseDTO} from "../dto/userCheckout.dto";
 
-        export class UserCheckoutController {
+export class UserCheckoutController {
   private static HUBTEL_API_BASE_URL = "https://payproxyapi.hubtel.com";
   private static HUBTEL_API_ID = process.env.HUBTEL_API_ID;
   private static HUBTEL_API_KEY = process.env.HUBTEL_API_KEY;
-  private static MERCHANT_ACCOUNT_NUMBER = process.env.HUBTEL_MERCHANT_ACCOUNT_NUMBER;
-  private static GOL_API_BASE_URL = process.env.GOL_API_BASE_URL || "https://golapi.golibe.com/json.php";
+  private static MERCHANT_ACCOUNT_NUMBER =
+    process.env.HUBTEL_MERCHANT_ACCOUNT_NUMBER;
+  private static GOL_API_BASE_URL =
+    process.env.GOL_API_BASE_URL || "https://golapi.golibe.com/json.php";
   private static GOL_CLIENT_ID = process.env.GOL_CLIENT_ID;
   private static GOL_PASSWORD = process.env.GOL_PASSWORD;
   private static GOL_PASSIVE_SESSION_ID = process.env.GOL_PASSIVE_SESSION_ID;
@@ -25,9 +27,13 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
     try {
       const checkoutData: CheckoutRequestDTO = req.body;
       const userId = req["currentUser"]?.id || "guest";
-
+      console.log("checkoutData", checkoutData);
       // Validate required data
-      if (!checkoutData.flight || !checkoutData.Traveler || checkoutData.Traveler.length === 0) {
+      if (
+        !checkoutData.flight ||
+        !checkoutData.Traveler ||
+        checkoutData.Traveler.length === 0
+      ) {
         return res.status(400).json({
           success: false,
           message: "Flight and traveler information are required",
@@ -38,7 +44,8 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       const bookingReference = this.generateBookingReference();
 
       // Calculate total amount
-      const totalAmount = checkoutData.flight.price * checkoutData.Traveler.length;
+      const totalAmount =
+        checkoutData.flight.price * checkoutData.Traveler.length;
 
       // Create checkout record
       const checkout = new UserCheckout({
@@ -46,25 +53,22 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
         flight: checkoutData.flight,
         travelers: checkoutData.Traveler,
         totalAmount,
-        currency: checkoutData.flight.currency || 'GHS',
-        status: 'PENDING',
-        paymentStatus: 'PENDING',
+        currency: checkoutData.flight.currency || "GHS",
+        status: "PENDING",
+        paymentStatus: "PENDING",
         userId,
-        contactInfo: {
-          email: checkoutData.Traveler[0]?.email || 'user@example.com',
-          phone: checkoutData.Traveler[0]?.phone || '+233123456789',
-          name: `${checkoutData.Traveler[0]?.NamePrefix} ${checkoutData.Traveler[0]?.GivenName} ${checkoutData.Traveler[0]?.Surname}`
-        }
+        contactInfo: checkoutData.contactInfo,
       });
 
       await checkout.save();
 
       // Prepare Hubtel payment request
       const hubtelRequest = {
-        totalAmount: totalAmount,
+        totalAmount: 1, //totalAmount,
         description: `Flight Booking - ${checkoutData.flight.from} to ${checkoutData.flight.to}`,
-        callbackUrl: `${process.env.BASE_URL}/api/checkout/payment/callback`,
-        returnUrl: `${process.env.FRONTEND_URL}/booking/success/${checkout._id}`,
+        callbackUrl:
+          "https://api.melcomtravels.com/api/checkout/payment/callback", //`${process.env.BASE_URL}/api/checkout/payment/callback`,
+        returnUrl: `${process.env.FRONTEND_URL}/booking-confirmation/${checkout._id}`,
         merchantAccountNumber: this.MERCHANT_ACCOUNT_NUMBER,
         cancellationUrl: `${process.env.FRONTEND_URL}/booking/cancelled/${checkout._id}`,
         clientReference: bookingReference,
@@ -74,7 +78,9 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       };
 
       // Create Basic Auth header for Hubtel
-      const authString = Buffer.from(`${this.HUBTEL_API_ID}:${this.HUBTEL_API_KEY}`).toString('base64');
+      const authString = Buffer.from(
+        `${this.HUBTEL_API_ID}:${this.HUBTEL_API_KEY}`
+      ).toString("base64");
 
       // Make request to Hubtel
       const hubtelResponse = await axios.post(
@@ -82,45 +88,46 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
         hubtelRequest,
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${authString}`,
+            "Content-Type": "application/json",
+            Authorization: `Basic ${authString}`,
           },
         }
       );
 
-      if (hubtelResponse.data.status !== 'Success') {
+      if (hubtelResponse.data.status !== "Success") {
         return res.status(500).json({
           success: false,
           message: "Failed to create checkout",
           error: hubtelResponse.data.message,
         });
       }
-      const { checkoutUrl, checkoutId, clientReference, checkoutDirectUrl } = hubtelResponse.data.data;
+      const {checkoutUrl, checkoutId, clientReference, checkoutDirectUrl} =
+        hubtelResponse.data.data;
 
-      checkout.checkoutId = checkoutId; 
+      checkout.checkoutId = checkoutId;
+      checkout.notes = `Hubtel Payment Initiated - Checkout ID: ${checkoutId} - Client Reference: ${clientReference} - Checkout URL: ${checkoutUrl} - Checkout Direct URL: ${checkoutDirectUrl}`;
       await checkout.save();
 
       // Update checkout with payment reference
-      await UserCheckout.findByIdAndUpdate(checkout._id, {
-        checkoutId,
-        notes: `Hubtel Payment Initiated - Checkout ID: ${checkoutId}`,
-      });
+      // await UserCheckout.findByIdAndUpdate(checkout._id, {
+      //   checkoutId,
+      //   notes: `Hubtel Payment Initiated - Checkout ID: ${checkoutId}`,
+      // });
 
-      console.log('hubtelResponse.data.checkoutUrl', hubtelResponse.data.data)
+      console.log("hubtelResponse.data.checkoutUrl", hubtelResponse.data.data);
 
-      console.log( checkoutId,
-        checkoutUrl,
-        bookingReference,)
+      console.log(checkoutId, checkoutUrl, bookingReference);
       const response: CheckoutResponseDTO = {
         checkoutId,
         checkoutUrl,
         bookingReference,
-        status: 'PENDING',
-        message: 'Checkout created successfully. Redirect user to checkoutUrl for payment.'
+        status: "PENDING",
+        message:
+          "Checkout created successfully. Redirect user to checkoutUrl for payment.",
       };
 
-                  return res.status(200).json({
-                    success: true,
+      return res.status(200).json({
+        success: true,
         message: "Checkout created successfully",
         data: response,
         instructions: {
@@ -128,7 +135,6 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
           direct: "Use checkoutDirectUrl for inline payment",
         },
       });
-
     } catch (error) {
       console.error("Checkout creation error:", error);
       return res.status(500).json({
@@ -142,21 +148,23 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   // Handle Hubtel payment callback
   static async paymentCallback(req: Request, res: Response) {
     try {
-      const { 
-        ResponseCode, 
-        ResponseText, 
-        Data: { 
-          CheckoutId, 
-          ClientReference, 
-          Amount, 
-          Status, 
+      const {
+        ResponseCode,
+        ResponseText,
+        Data: {
+          CheckoutId,
+          ClientReference,
+          Amount,
+          Status,
           TransactionId,
-          Description 
-        } 
+          Description,
+        },
       } = req.body;
 
       console.log("Hubtel Payment Callback received:", req.body);
-
+      // Update checkout based on payment status
+      let checkoutStatus = "PENDING";
+      let paymentStatus = "PENDING";
       // Find checkout by client reference (booking reference)
       const checkout = await UserCheckout.findOne({
         bookingReference: ClientReference,
@@ -171,74 +179,86 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
         });
       }
 
-      // Perform status check with Hubtel using ClientReference
-      let hubtelStatusCheck = null;
-      try {
-        hubtelStatusCheck = await this.checkHubtelTransactionStatus(ClientReference);
-        console.log("Hubtel status check result:", hubtelStatusCheck);
-      } catch (statusError) {
-        console.error("Hubtel status check error:", statusError);
-        // Continue with callback data if status check fails
-      }
-
-      // Use Hubtel status check result if available, otherwise use callback data
-      const finalStatus = hubtelStatusCheck?.status || Status;
-      const finalTransactionId = hubtelStatusCheck?.transactionId || TransactionId;
-      const finalResponseCode = hubtelStatusCheck?.responseCode || ResponseCode;
-
-      // Update checkout based on payment status
-      let checkoutStatus = "PENDING";
-      let paymentStatus = "PENDING";
-
-      if (finalResponseCode === "0000" && finalStatus === "Success") {
-        checkoutStatus = "CONFIRMED";
-        paymentStatus = "PAID";
-        
+      if (ResponseCode === "0000" && Status === "Success") {
+        console.log(
+          "EARLY-Payment callback confirmed and completed successfully"
+        );
         // Create GOL API reservation
         try {
-          const golReservationId = await this.createGOLReservation(checkout);
-          
+          const golReservationResponse = await this.createGOLReservation(
+            checkout
+          );
+
           // Update checkout with GOL reservation ID
           await UserCheckout.findByIdAndUpdate(checkout._id, {
             status: checkoutStatus,
             paymentStatus: paymentStatus,
-            transactionId: finalTransactionId,
-            golReservationId,
-            notes: `Payment ${finalStatus} - ${ResponseText} - Transaction ID: ${finalTransactionId} - GOL Reservation: ${golReservationId} - Status Check: ${hubtelStatusCheck ? 'Verified' : 'Callback Only'}`,
+            transactionId: req.body.Data?.SalesInvoiceId,
+            golReservationResponse,
+            notes: `Payment - ${ResponseText} Completed Successfully`,
           });
+
+          return res.status(200).json({
+            success: true,
+            message: "Payment callback processed successfully",
+          });
+
         } catch (golError) {
           console.error("GOL reservation error:", golError);
-          // Update with payment success but note GOL reservation failure
-          await UserCheckout.findByIdAndUpdate(checkout._id, {
-            status: "CONFIRMED",
-            paymentStatus: "PAID",
-            transactionId: finalTransactionId,
-            notes: `Payment ${finalStatus} - ${ResponseText} - Transaction ID: ${finalTransactionId} - GOL Reservation Failed: ${golError.message} - Status Check: ${hubtelStatusCheck ? 'Verified' : 'Callback Only'}`,
+          return res.status(500).json({
+            success: false,
+            message: "Failed to create GOL reservation",
           });
         }
-      } else if (finalStatus === "Failed" || finalStatus === "Cancelled") {
-        checkoutStatus = "FAILED";
-        paymentStatus = "FAILED";
-        
-        await UserCheckout.findByIdAndUpdate(checkout._id, {
-          status: checkoutStatus,
-          paymentStatus: paymentStatus,
-          transactionId: finalTransactionId,
-          notes: `Payment ${finalStatus} - ${ResponseText} - Transaction ID: ${finalTransactionId} - Status Check: ${hubtelStatusCheck ? 'Verified' : 'Callback Only'}`,
-        });
       }
 
-      return res.status(200).json({
-        success: true,
-        message: "Payment callback processed successfully",
-        data: {
-          checkoutId: checkout._id,
-          bookingReference: checkout.bookingReference,
-          status: checkoutStatus,
-          paymentStatus: paymentStatus,
-          hubtelStatusCheck: hubtelStatusCheck ? 'Verified' : 'Callback Only',
-        },
-      });
+      // Perform status check with Hubtel using ClientReference
+
+      try {
+        const hubtelStatusCheck = await this.checkHubtelTransactionStatus(
+          ClientReference
+        );
+        console.log("Hubtel status check result:", hubtelStatusCheck);
+        if (hubtelStatusCheck?.responseCode === "0000" && hubtelStatusCheck?.data?.status === "Paid") {
+          checkoutStatus = "CONFIRMED";
+          paymentStatus = "PAID";
+
+          // Create GOL API reservation
+          try {
+            const golReservationResponse = await this.createGOLReservation(
+              checkout
+            );
+
+            // Update checkout with GOL reservation ID
+            await UserCheckout.findByIdAndUpdate(checkout._id, {
+              status: checkoutStatus,
+              paymentStatus: paymentStatus,
+              transactionId: hubtelStatusCheck?.transactionId,
+              golReservationResponse,
+              notes: `Payment - ${ResponseText} Completed Successfully`,
+            });
+
+            return res.status(200).json({
+              success: true,
+              message: "Payment callback processed successfully",
+            });
+          } catch (golError) {
+            console.error("GOL reservation error:", golError);
+            return res.status(500).json({
+              success: false,
+              message: "Failed to create GOL reservation" 
+            });
+          }
+        }
+      } catch (statusError) {
+        console.error("Hubtel status check error:", statusError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to check Hubtel transaction status",
+          error: statusError.message,
+        });
+        // Continue with callback data if status check fails
+      }
 
     } catch (error) {
       console.error("Payment callback error:", error);
@@ -251,10 +271,14 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   }
 
   // Check Hubtel transaction status using ClientReference
-  private static async checkHubtelTransactionStatus(clientReference: string): Promise<any> {
+  private static async checkHubtelTransactionStatus(
+    clientReference: string
+  ): Promise<any> {
     try {
-      const authString = Buffer.from(`${this.HUBTEL_API_ID}:${this.HUBTEL_API_KEY}`).toString('base64');
-      
+      const authString = Buffer.from(
+        `${this.HUBTEL_API_ID}:${this.HUBTEL_API_KEY}`
+      ).toString("base64");
+
       // First, we need to get the transaction ID from the client reference
       // This might require a different endpoint or we might need to use the checkout ID
       // For now, let's try to get status using the client reference
@@ -262,17 +286,19 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
         `https://api-txnstatus.hubtel.com/transactions/${process.env.HUBTEL_MERCHANT_ACCOUNT_NUMBER}/status?clientReference=${clientReference}`,
         {
           headers: {
-            'Authorization': `Basic ${authString}`,
-            'Content-Type': 'application/json',
+            Authorization: `Basic ${authString}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
       console.log("Hubtel status check response:", statusResponse.data);
       return statusResponse.data;
-
     } catch (error) {
-      console.error("Hubtel status check error:", error.response?.data || error.message);
+      console.error(
+        "Hubtel status check error:",
+        error.response?.data || error.message
+      );
       throw error;
     }
   }
@@ -281,15 +307,18 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   private static async createGOLReservation(checkout: any): Promise<string> {
     try {
       // Get selected price reference from checkout (assuming it's stored in flight.prices or flight.selectedPrice)
-      const selectedPrice = checkout.flight?.selectedPrice || checkout.flight?.prices?.[0] || {};
-      const priceReference = selectedPrice.reference || selectedPrice.key || checkout.flight?.bookingReference || "";
-      const priceAmount = selectedPrice.total || checkout.totalAmount || checkout.flight?.price || "0";
+      const priceReference = checkout.flight?.bookingReference || "";
+      console.log("createGOLReservation-priceReference", priceReference);
+      const priceAmount =
+        checkout.totalAmount ||
+        checkout.flight?.price ||
+        "0";
 
       // Parse phone number to extract country code and number
       const phone = checkout.contactInfo.phone || "";
       let phoneCountryCode = "+233";
       let phoneNumber = phone;
-      
+
       // Try to extract country code (format: +233, +1, etc.)
       if (phone.startsWith("+")) {
         const match = phone.match(/^\+(\d{1,4})(.*)$/);
@@ -309,40 +338,54 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       }
 
       // Build passenger parameters
-      const passengerParameters = checkout.travelers.map((traveler: any, index: number) => ({
-        Code: "passenger",
-        Index: index.toString(),
-        AdditionalInfo: {
-          Info: [{
-            Code: "passengerType",
-            $t: traveler.PassengerType || "ADT"
-          }]
-        },
-        ParameterGroup: [
-          {
-            Code: "passengerPerson",
-            ParameterElement: [
-              { Name: "passenger_title", $t: traveler.NamePrefix || "MR" },
-              { Name: "passenger_firstname", $t: traveler.GivenName || "", Format: "ascii_alphabet" },
-              { Name: "passenger_lastname", $t: traveler.Surname || "", Format: "ascii_alphabet" }
-            ]
+      const passengerParameters = checkout.travelers.map(
+        (traveler: any, index: number) => ({
+          Code: "passenger",
+          Index: index.toString(),
+          AdditionalInfo: {
+            Info: [
+              {
+                Code: "passengerType",
+                $t: traveler.PassengerType || "ADT",
+              },
+            ],
           },
-          {
-            Code: "passengerServices",
-            ParameterElement: [
-              { Name: "passenger_frequent_flyer", $t: "" },
-              { Name: "passenger_frequent_flyer_number", $t: "", Format: "alphanumeric" }
-            ]
-          }
-        ]
-      }));
+          ParameterGroup: [
+            {
+              Code: "passengerPerson",
+              ParameterElement: [
+                {Name: "passenger_title", $t: traveler.NamePrefix || "MR"},
+                {
+                  Name: "passenger_firstname",
+                  $t: traveler.GivenName || "",
+                  Format: "ascii_alphabet",
+                },
+                {
+                  Name: "passenger_lastname",
+                  $t: traveler.Surname || "",
+                  Format: "ascii_alphabet",
+                },
+              ],
+            },
+            {
+              Code: "passengerServices",
+              ParameterElement: [
+                {Name: "passenger_frequent_flyer", $t: ""},
+                {
+                  Name: "passenger_frequent_flyer_number",
+                  $t: "",
+                  Format: "alphanumeric",
+                },
+              ],
+            },
+          ],
+        })
+      );
 
       // Build contact parameters
-      const contactName = checkout.contactInfo.name || 
-        `${checkout.travelers[0]?.NamePrefix || "MR"} ${checkout.travelers[0]?.GivenName || ""} ${checkout.travelers[0]?.Surname || ""}`.trim();
+      const contactName = checkout.contactInfo.name.trim();
 
-        const contactEmail = checkout.contactInfo.email || 
-        `${checkout.travelers[0]?.email || "n/a"}`.trim();
+      const contactEmail = checkout.contactInfo.email.trim();
 
       // Prepare GOL API reservation request matching the curl structure
       const golRequest = {
@@ -351,15 +394,15 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
           Authorization: {
             Requestor: {
               ClientId: this.GOL_CLIENT_ID,
-              Password: this.GOL_PASSWORD
-            }
+              Password: this.GOL_PASSWORD,
+            },
             // UserToken can be added here if available from session
           },
           Settings: {
             Localization: {
               Language: "en",
-              Country: "CZ"
-            }
+              Country: "CZ",
+            },
           },
           RequestDetail: {
             BookReservationsRequest_3: {
@@ -368,23 +411,25 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
                   Id: "781",
                   Rate: "0",
                   RatedFor: "abs",
-                  Price: "0"
+                  Price: "0",
                 },
                 PaymentformOption: {
                   Id: "2473",
                   Rate: "0",
                   RatedFor: "abs",
-                  Price: "0"
-                }
+                  Price: "0",
+                },
               },
               BookReservationsWithParameters: {
                 BookReservationWithParameters: {
                   ExternalReservationId: checkout.bookingReference,
                   PricedReference: {
                     Price: priceAmount.toString(),
-                    Reference: [{
-                      $t: priceReference
-                    }]
+                    Reference: [
+                      {
+                        $t: priceReference,
+                      },
+                    ],
                   },
                   Parameters: {
                     ParameterGroup: [
@@ -398,8 +443,8 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
                             Code: "elements",
                             ParameterElement: {
                               Name: "contact_name",
-                              $t: contactName
-                            }
+                              $t: contactName,
+                            },
                           },
                           {
                             Code: "telephone",
@@ -407,24 +452,24 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
                               {
                                 Name: "contact_phone_country",
                                 $t: phoneCountryCode,
-                                Format: "country_calling_code"
+                                Format: "country_calling_code",
                               },
                               {
                                 Name: "contact_phone_number",
                                 $t: phoneNumber,
-                                Format: "number"
-                              }
-                            ]
+                                Format: "number",
+                              },
+                            ],
                           },
                           {
                             Code: "elements",
                             ParameterElement: {
                               Name: "contact_email",
                               $t: contactEmail || "",
-                              Format: "email"
-                            }
-                          }
-                        ]
+                              Format: "email",
+                            },
+                          },
+                        ],
                       },
                       // Company/Billing (optional)
                       {
@@ -432,66 +477,82 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
                         ParameterGroup: {
                           Code: "billing",
                           ParameterElement: [
-                            { Name: "company_billing_company", $t: "" },
-                            { Name: "company_billing_id", $t: "", Format: "alphanumeric" },
-                            { Name: "company_billing_tax_id", $t: "", Format: "alphanumeric" },
-                            { Name: "company_billing_street", $t: "" },
-                            { Name: "company_billing_city", $t: "" },
-                            { Name: "company_billing_zipcode", $t: "" },
-                            { Name: "company_billing_country", $t: checkout.currency === "GHS" ? "GH" : "CZ" }
-                          ]
-                        }
+                            {Name: "company_billing_company", $t: ""},
+                            {
+                              Name: "company_billing_id",
+                              $t: "",
+                              Format: "alphanumeric",
+                            },
+                            {
+                              Name: "company_billing_tax_id",
+                              $t: "",
+                              Format: "alphanumeric",
+                            },
+                            {Name: "company_billing_street", $t: ""},
+                            {Name: "company_billing_city", $t: ""},
+                            {Name: "company_billing_zipcode", $t: ""},
+                            {
+                              Name: "company_billing_country",
+                              $t: checkout.currency === "GHS" ? "GH" : "CZ",
+                            },
+                          ],
+                        },
                       },
                       // Other remarks
                       {
                         Code: "other",
                         ParameterElement: {
                           Name: "other_remark",
-                          $t: checkout.notes || ""
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
+                          $t: checkout.notes || "",
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
       };
 
+      console.log('golRequest', golRequest)
       // Make request to GOL API
-      const golResponse = await axios.post(
-        this.GOL_API_BASE_URL,
-        golRequest,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json, text/plain, */*'
-          },
-        }
-      );
+      const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/plain, */*",
+        },
+      });
 
+      console.log('golResponse', golResponse.data)
       // Extract reservation ID from response
       const golData = golResponse.data?.GolApi;
-      const reservation = golData?.ResponseDetail?.BookReservationsResponse_3?.BookReservation || {};
-      const reservationId = reservation.ReservationCode || reservation.PNR || reservation.ReservationId || null;
+      const reservation =
+        golData?.ResponseDetail?.BookReservationsResponse_3?.BookReservation ||
+        {};
+      const reservationId =
+        reservation.ReservationCode ||
+        reservation.PNR ||
+        reservation.ReservationId ||
+        null;
 
       if (!reservationId) {
         throw new Error("Failed to get reservation ID from GOL API response");
       }
 
       return reservationId;
-
     } catch (error) {
       console.error("GOL reservation creation error:", error);
-      throw new Error(`GOL reservation failed: ${error.response?.data || error.message}`);
+      throw new Error(
+        `GOL reservation failed: ${error.response?.data || error.message}`
+      );
     }
   }
 
   // Check payment status
   static async checkPaymentStatus(req: Request, res: Response) {
     try {
-      const { checkoutId } = req.params;
+      const {checkoutId} = req.params;
 
       const checkout = await UserCheckout.findById(checkoutId);
 
@@ -503,73 +564,84 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       }
 
       // If payment is pending, check with Hubtel using ClientReference
-      if (checkout.paymentStatus === 'PENDING' && checkout.bookingReference) {
+      if (checkout.paymentStatus === "PENDING" && checkout.bookingReference) {
         try {
-          const hubtelStatusCheck = await this.checkHubtelTransactionStatus(checkout.bookingReference);
+          const hubtelStatusCheck = await this.checkHubtelTransactionStatus(
+            checkout.bookingReference
+          );
           console.log("Manual status check result:", hubtelStatusCheck);
 
           // Update status based on Hubtel response
-          if (hubtelStatusCheck?.status === 'Success' && hubtelStatusCheck?.responseCode === '0000') {
-            await UserCheckout.findByIdAndUpdate(checkoutId, {
-              status: 'CONFIRMED',
-              paymentStatus: 'PAID',
-              transactionId: hubtelStatusCheck.transactionId,
-              notes: `Status updated via manual check - Transaction ID: ${hubtelStatusCheck.transactionId}`,
+          if (hubtelStatusCheck?.responseCode === "0000" && hubtelStatusCheck?.data?.status === "Paid") {
+         
+             // Create GOL API reservation
+          try {
+            const golReservationResponse = await this.createGOLReservation(
+              checkout
+            );
+
+            // Update checkout with GOL reservation ID
+            await UserCheckout.findByIdAndUpdate(checkout._id, {
+              status: "CONFIRMED",
+              paymentStatus: "PAID",
+              transactionId: hubtelStatusCheck?.transactionId,
+              golReservationResponse,
+              notes: `Payment  Completed Successfully`,
             });
-          } else if (hubtelStatusCheck?.status === 'Failed' || hubtelStatusCheck?.status === 'Cancelled') {
+
+            return res.status(200).json({
+              success: true,
+              message: "Payment status updated successfully",
+            });
+          } catch (golError) {
+            console.error("GOL reservation error:", golError);
+            return res.status(500).json({
+              success: false,
+              message: "Failed to create GOL reservation" 
+            });
+          }
+          } else if (
+            hubtelStatusCheck?.status === "Failed" ||
+            hubtelStatusCheck?.status === "Cancelled"
+          ) {
             await UserCheckout.findByIdAndUpdate(checkoutId, {
-              status: 'FAILED',
-              paymentStatus: 'FAILED',
+              status: "FAILED",
+              paymentStatus: "FAILED",
               transactionId: hubtelStatusCheck.transactionId,
               notes: `Status updated via manual check - ${hubtelStatusCheck.status} - Transaction ID: ${hubtelStatusCheck.transactionId}`,
             });
           }
         } catch (hubtelError) {
-          console.error("Hubtel status check error:", hubtelError);
+          console.error("Hubtel status check error:", hubtelError.message);
         }
       }
-
-      // Return updated checkout
-      const updatedCheckout = await UserCheckout.findById(checkoutId);
 
       return res.status(200).json({
         success: true,
         message: "Payment status retrieved successfully",
-        data: {
-          checkoutId: updatedCheckout._id,
-          bookingReference: updatedCheckout.bookingReference,
-          status: updatedCheckout.status,
-          paymentStatus: updatedCheckout.paymentStatus,
-          transactionId: updatedCheckout.transactionId,
-          golReservationId: updatedCheckout.golReservationId,
-          totalAmount: updatedCheckout.totalAmount,
-          currency: updatedCheckout.currency,
-          createdAt: updatedCheckout.createdAt,
-          updatedAt: updatedCheckout.updatedAt,
-        },
+        data: checkout,
       });
-
     } catch (error) {
-                  return res.status(500).json({
-                      success: false,
+      return res.status(500).json({
+        success: false,
         message: "Failed to check payment status",
         error: error.message,
-                  });
-                }
-            }
+      });
+    }
+  }
 
   // Get all checkouts (for admin or user)
   static async getAllCheckouts(req: Request, res: Response) {
     try {
       const userId = req["currentUser"]?.id;
-      const { page = 1, limit = 10 } = req.query;
-      const query = userId ? { userId } : {};
+      const {page = 1, limit = 10} = req.query;
+      const query = userId ? {userId} : {};
 
       const skip = (Number(page) - 1) * Number(limit);
       const total = await UserCheckout.countDocuments(query);
 
       const checkouts = await UserCheckout.find(query)
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .skip(skip)
         .limit(Number(limit));
 
@@ -581,10 +653,9 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
           page: Number(page),
           limit: Number(limit),
           total,
-          pages: Math.ceil(total / Number(limit))
-        }
+          pages: Math.ceil(total / Number(limit)),
+        },
       });
-
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -597,12 +668,19 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   // Get all checkouts for admin (admin only)
   static async getAllCheckoutsForAdmin(req: Request, res: Response) {
     try {
-      const { page = 1, limit = 10, status, paymentStatus, startDate, endDate } = req.query;
+      const {
+        page = 1,
+        limit = 10,
+        status,
+        paymentStatus,
+        startDate,
+        endDate,
+      } = req.query;
       const filter: any = {};
-      
+
       if (status) filter.status = status;
       if (paymentStatus) filter.paymentStatus = paymentStatus;
-      
+
       // Date range filtering
       if (startDate || endDate) {
         filter.createdAt = {};
@@ -621,7 +699,7 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       const total = await UserCheckout.countDocuments(filter);
 
       const checkouts = await UserCheckout.find(filter)
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .skip(skip)
         .limit(Number(limit));
 
@@ -633,10 +711,9 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
           page: Number(page),
           limit: Number(limit),
           total,
-          pages: Math.ceil(total / Number(limit))
-        }
+          pages: Math.ceil(total / Number(limit)),
+        },
       });
-
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -649,13 +726,20 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   // Get checkouts by user ID (admin only)
   static async getCheckoutsByUserId(req: Request, res: Response) {
     try {
-      const { userId } = req.params;
-      const { page = 1, limit = 10, status, paymentStatus, startDate, endDate } = req.query;
-      
-      const filter: any = { userId };
+      const {userId} = req.params;
+      const {
+        page = 1,
+        limit = 10,
+        status,
+        paymentStatus,
+        startDate,
+        endDate,
+      } = req.query;
+
+      const filter: any = {userId};
       if (status) filter.status = status;
       if (paymentStatus) filter.paymentStatus = paymentStatus;
-      
+
       // Date range filtering
       if (startDate || endDate) {
         filter.createdAt = {};
@@ -674,7 +758,7 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       const total = await UserCheckout.countDocuments(filter);
 
       const checkouts = await UserCheckout.find(filter)
-        .sort({ createdAt: -1 })
+        .sort({createdAt: -1})
         .skip(skip)
         .limit(Number(limit));
 
@@ -686,10 +770,9 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
           page: Number(page),
           limit: Number(limit),
           total,
-          pages: Math.ceil(total / Number(limit))
-        }
+          pages: Math.ceil(total / Number(limit)),
+        },
       });
-
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -702,32 +785,37 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   // Update checkout status (admin only)
   static async updateCheckoutStatus(req: Request, res: Response) {
     try {
-      const { checkoutId } = req.params;
-      const { status, paymentStatus, notes } = req.body;
+      const {checkoutId} = req.params;
+      const {status, paymentStatus, notes} = req.body;
 
       // Validate that at least one field is provided
       if (!status && !paymentStatus && !notes) {
         return res.status(400).json({
           success: false,
-          message: "At least one field (status, paymentStatus, or notes) must be provided",
+          message:
+            "At least one field (status, paymentStatus, or notes) must be provided",
         });
       }
 
       // Validate status enum if provided
-      const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'FAILED'];
+      const validStatuses = ["PENDING", "CONFIRMED", "CANCELLED", "FAILED"];
       if (status && !validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+          message: `Invalid status. Must be one of: ${validStatuses.join(
+            ", "
+          )}`,
         });
       }
 
       // Validate paymentStatus enum if provided
-      const validPaymentStatuses = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'];
+      const validPaymentStatuses = ["PENDING", "PAID", "FAILED", "REFUNDED"];
       if (paymentStatus && !validPaymentStatuses.includes(paymentStatus)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid paymentStatus. Must be one of: ${validPaymentStatuses.join(', ')}`,
+          message: `Invalid paymentStatus. Must be one of: ${validPaymentStatuses.join(
+            ", "
+          )}`,
         });
       }
 
@@ -743,7 +831,7 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       const checkout = await UserCheckout.findByIdAndUpdate(
         checkoutId,
         updatePayload,
-        { new: true }
+        {new: true}
       );
 
       if (!checkout) {
@@ -758,7 +846,6 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
         message: "Checkout status updated successfully",
         data: checkout,
       });
-
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -771,8 +858,8 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
   // Get checkout analytics (admin only)
   static async getCheckoutAnalytics(req: Request, res: Response) {
     try {
-      const { startDate, endDate } = req.query;
-      
+      const {startDate, endDate} = req.query;
+
       // Build date filter
       const dateFilter: any = {};
       if (startDate || endDate) {
@@ -792,28 +879,29 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       const totalBookings = await UserCheckout.countDocuments(dateFilter);
 
       // Paid bookings (paymentStatus = 'PAID')
-      const paidBookingsFilter = { ...dateFilter, paymentStatus: 'PAID' };
-      const paidBookings = await UserCheckout.countDocuments(paidBookingsFilter);
+      const paidBookingsFilter = {...dateFilter, paymentStatus: "PAID"};
+      const paidBookings = await UserCheckout.countDocuments(
+        paidBookingsFilter
+      );
 
       // Pending bookings (status = 'PENDING' OR paymentStatus = 'PENDING')
       const pendingBookingsFilter = {
         ...dateFilter,
-        $or: [
-          { status: 'PENDING' },
-          { paymentStatus: 'PENDING' }
-        ]
+        $or: [{status: "PENDING"}, {paymentStatus: "PENDING"}],
       };
-      const pendingBookings = await UserCheckout.countDocuments(pendingBookingsFilter);
+      const pendingBookings = await UserCheckout.countDocuments(
+        pendingBookingsFilter
+      );
 
       // Revenue (sum of totalAmount where paymentStatus = 'PAID')
       const revenueResult = await UserCheckout.aggregate([
-        { $match: paidBookingsFilter },
+        {$match: paidBookingsFilter},
         {
           $group: {
-            _id: '$currency',
-            total: { $sum: '$totalAmount' }
-          }
-        }
+            _id: "$currency",
+            total: {$sum: "$totalAmount"},
+          },
+        },
       ]);
 
       // Calculate revenue by currency
@@ -823,12 +911,14 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       });
 
       // Get total revenue (sum all currencies)
-      const totalRevenue = revenueResult.reduce((sum: number, item: any) => sum + item.total, 0);
+      const totalRevenue = revenueResult.reduce(
+        (sum: number, item: any) => sum + item.total,
+        0
+      );
 
       // Get default currency (most common currency or GHS)
-      const defaultCurrency = revenueResult.length > 0 
-        ? revenueResult[0]._id 
-        : 'GHS';
+      const defaultCurrency =
+        revenueResult.length > 0 ? revenueResult[0]._id : "GHS";
 
       return res.status(200).json({
         success: true,
@@ -840,11 +930,10 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
           revenue: {
             total: totalRevenue,
             byCurrency: revenue,
-            currency: defaultCurrency
-          }
-        }
+            currency: defaultCurrency,
+          },
+        },
       });
-
     } catch (error) {
       return res.status(500).json({
         success: false,
@@ -853,4 +942,4 @@ import { CheckoutRequestDTO, CheckoutResponseDTO } from "../dto/userCheckout.dto
       });
     }
   }
-        }
+}

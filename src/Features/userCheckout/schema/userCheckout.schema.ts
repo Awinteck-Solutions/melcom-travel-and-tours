@@ -96,7 +96,7 @@ const UserCheckoutSchema = new Schema({
     unique: true 
   },
   flight: {
-    id: { type: Number, required: true },
+    id: { type: String, required: true },
     from: { type: String, required: true },
     fromCode: { type: String, required: true },
     to: { type: String, required: true },
@@ -113,23 +113,6 @@ const UserCheckoutSchema = new Schema({
     stops: { type: Number, required: true },
     flightNumber: { type: String, required: true },
     class: { type: String, required: true },
-    segment: [{
-      flightNumber: { type: String, required: true },
-      airline: { type: String, required: true },
-      aircraft: { type: String, required: true },
-      departure: {
-        airport: { type: String, required: true },
-        time: { type: String, required: true },
-        terminal: { type: String, required: true }
-      },
-      arrival: {
-        airport: { type: String, required: true },
-        time: { type: String, required: true },
-        terminal: { type: String, required: true }
-      },
-      duration: { type: String, required: true },
-      cabinClass: { type: String, required: true }
-    }],
     bookingReference: { type: String, required: true },
     currency: { type: String, required: true },
     perPassenger: { type: Number, required: true },
@@ -185,7 +168,8 @@ const UserCheckoutSchema = new Schema({
     phone: { type: String, required: true },
     name: { type: String, required: true }
   },
-  notes: { type: String, required: false }
+  notes: { type: String, required: false },
+  golReservationResponse: { type: Object, required: false }
 }, { timestamps: true });
 
 const UserCheckout = mongoose.model<IUserCheckout>('UserCheckout', UserCheckoutSchema);
