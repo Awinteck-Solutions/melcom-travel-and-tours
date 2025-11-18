@@ -1,5 +1,6 @@
 import {Request, Response} from "express";
 import axios from "axios";
+import fs from "fs";
 import UserCheckout from "../schema/userCheckout.schema";
 import {CheckoutRequestDTO, CheckoutResponseDTO} from "../dto/userCheckout.dto";
 
@@ -39,14 +40,18 @@ export class UserCheckoutController {
           message: "Flight and traveler information are required",
         });
       }
- // Validate environment variables
- if (!this.HUBTEL_API_ID || !this.HUBTEL_API_KEY || !this.MERCHANT_ACCOUNT_NUMBER) {
-  console.error("Missing Hubtel environment variables");
-  return res.status(500).json({
-    success: false,
-    message: "Payment gateway configuration error",
-  });
-}
+      // Validate environment variables
+      if (
+        !this.HUBTEL_API_ID ||
+        !this.HUBTEL_API_KEY ||
+        !this.MERCHANT_ACCOUNT_NUMBER
+      ) {
+        console.error("Missing Hubtel environment variables");
+        return res.status(500).json({
+          success: false,
+          message: "Payment gateway configuration error",
+        });
+      }
       // Generate unique booking reference
       const bookingReference = this.generateBookingReference();
 
@@ -82,7 +87,6 @@ export class UserCheckoutController {
         payeeName: (checkout.contactInfo?.name || "").trim(),
         payeeMobileNumber: (checkout.contactInfo?.phone || "").trim(),
         payeeEmail: (checkout.contactInfo?.email || "").trim(),
-      
       };
 
       // Create Basic Auth header for Hubtel
@@ -210,7 +214,6 @@ export class UserCheckoutController {
             success: true,
             message: "Payment callback processed successfully",
           });
-
         } catch (golError) {
           console.error("GOL reservation error:", golError);
           return res.status(500).json({
@@ -227,7 +230,10 @@ export class UserCheckoutController {
           ClientReference
         );
         console.log("Hubtel status check result:", hubtelStatusCheck);
-        if (hubtelStatusCheck?.responseCode === "0000" && hubtelStatusCheck?.data?.status === "Paid") {
+        if (
+          hubtelStatusCheck?.responseCode === "0000" &&
+          hubtelStatusCheck?.data?.status === "Paid"
+        ) {
           checkoutStatus = "CONFIRMED";
           paymentStatus = "PAID";
 
@@ -254,7 +260,7 @@ export class UserCheckoutController {
             console.error("GOL reservation error:", golError);
             return res.status(500).json({
               success: false,
-              message: "Failed to create GOL reservation" 
+              message: "Failed to create GOL reservation",
             });
           }
         }
@@ -267,7 +273,6 @@ export class UserCheckoutController {
         });
         // Continue with callback data if status check fails
       }
-
     } catch (error) {
       console.error("Payment callback error:", error);
       return res.status(500).json({
@@ -317,10 +322,7 @@ export class UserCheckoutController {
       // Get selected price reference from checkout (assuming it's stored in flight.prices or flight.selectedPrice)
       const priceReference = checkout.flight?.bookingReference || "";
       console.log("createGOLReservation-priceReference", priceReference);
-      const priceAmount =
-        checkout.totalAmount ||
-        checkout.flight?.price ||
-        "0";
+      const priceAmount = checkout.totalAmount || checkout.flight?.price || "0";
 
       // Parse phone number to extract country code and number
       const phone = checkout.contactInfo.phone || "";
@@ -523,7 +525,14 @@ export class UserCheckoutController {
         },
       };
 
-      console.log('golRequest', golRequest.GolApi.RequestDetail.BookReservationsRequest_3.toString())
+      console.log(
+        "golRequest",
+        golRequest.GolApi.RequestDetail.BookReservationsRequest_3.toString()
+      );
+      // store the golRequest in a file
+      fs.writeFileSync("golRequest.json", JSON.stringify(golRequest, null, 2));
+
+
       // Make request to GOL API
       const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
         headers: {
@@ -532,20 +541,29 @@ export class UserCheckoutController {
         },
       });
 
-      console.log('golResponse1', golResponse.data)
-      console.log('golResponse2', golResponse.data.GolApi)
-      console.log('golResponse3', golResponse.data.GolApi.ResponseDetail)
-      console.log('golResponse3', golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3?.BookedReservations)
+      console.log("golResponse1", golResponse.data);
+      console.log("golResponse2", golResponse.data.GolApi);
+      console.log("golResponse3", golResponse.data.GolApi.ResponseDetail);
+      console.log(
+        "golResponse3",
+        golResponse.data.GolApi.ResponseDetail?.BookReservationsResponse_3
+          ?.BookedReservations
+      );
       // Extract reservation ID from response
-      const golData = golResponse.data?.GolApi;
-      const reservation = golData?.ResponseDetail?.BookReservationsResponse_3?.BookedReservations?.BookedReservation[0];
-      const reservationId = reservation?.ReservationId || null;
+      const golData =
+        golResponse.data?.GolApi?.ResponseDetail?.BookReservationsResponse_3;
+      if (golData?.BookedReservations) {
+        const reservation = golData?.BookedReservations?.BookedReservation[0];
+        console.log("reservation", reservation);
+        const reservationId = reservation?.ReservationId || null;
+        return reservationId;
 
-      // if (!reservationId) {
-      //   throw new Error("Failed to get reservation ID from GOL API response");
-      // }
-
-      return reservationId || "";
+      } else if (golData?.ErrorMessage) {
+        console.log("golData?.ErrorMessage", golData?.ErrorMessage);
+        throw new Error(golData?.ErrorMessage);
+      } else {
+        throw new Error("Failed to get reservation ID from GOL API response");
+      } 
     } catch (error) {
       console.error("GOL reservation creation error:", error);
       throw new Error(
@@ -577,34 +595,36 @@ export class UserCheckoutController {
           console.log("Manual status check result:", hubtelStatusCheck);
 
           // Update status based on Hubtel response
-          if (hubtelStatusCheck?.responseCode === "0000" && hubtelStatusCheck?.data?.status === "Paid") {
-         
-             // Create GOL API reservation
-          try {
-            const golReservationResponse = await this.createGOLReservation(
-              checkout
-            );
+          if (
+            hubtelStatusCheck?.responseCode === "0000" &&
+            hubtelStatusCheck?.data?.status === "Paid"
+          ) {
+            // Create GOL API reservation
+            try {
+              const golReservationResponse = await this.createGOLReservation(
+                checkout
+              );
 
-            // Update checkout with GOL reservation ID
-            await UserCheckout.findByIdAndUpdate(checkout._id, {
-              status: "CONFIRMED",
-              paymentStatus: "PAID",
-              transactionId: hubtelStatusCheck?.transactionId,
-              golReservationResponse,
-              notes: `Payment  Completed Successfully`,
-            });
+              // Update checkout with GOL reservation ID
+              await UserCheckout.findByIdAndUpdate(checkout._id, {
+                status: "CONFIRMED",
+                paymentStatus: "PAID",
+                transactionId: hubtelStatusCheck?.transactionId,
+                golReservationResponse,
+                notes: `Payment  Completed Successfully`,
+              });
 
-            return res.status(200).json({
-              success: true,
-              message: "Payment status updated successfully",
-            });
-          } catch (golError) {
-            console.error("GOL reservation error:", golError);
-            return res.status(500).json({
-              success: false,
-              message: "Failed to create GOL reservation" 
-            });
-          }
+              return res.status(200).json({
+                success: true,
+                message: "Payment status updated successfully",
+              });
+            } catch (golError) {
+              console.error("GOL reservation error:", golError);
+              return res.status(500).json({
+                success: false,
+                message: "Failed to create GOL reservation",
+              });
+            }
           } else if (
             hubtelStatusCheck?.status === "Failed" ||
             hubtelStatusCheck?.status === "Cancelled"
