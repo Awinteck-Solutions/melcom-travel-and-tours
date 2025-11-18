@@ -591,7 +591,7 @@ console.log("bookingReference", bookingReference);
       // Extract reservation ID from response
       const golData = golResponse.data.GolApi.ResponseDetail;
 
-      console.log("golResponse3 updated", golData);
+      console.log("golResponse3 updated", golData.SystemRequestError_1.Error);
       if (golData?.BookReservationsResponse_3?.BookedReservations) {
         const reservation = golData?.BookedReservations?.BookedReservation[0];
         console.log("reservation", reservation);
