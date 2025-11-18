@@ -39,7 +39,14 @@ export class UserCheckoutController {
           message: "Flight and traveler information are required",
         });
       }
-
+ // Validate environment variables
+ if (!this.HUBTEL_API_ID || !this.HUBTEL_API_KEY || !this.MERCHANT_ACCOUNT_NUMBER) {
+  console.error("Missing Hubtel environment variables");
+  return res.status(500).json({
+    success: false,
+    message: "Payment gateway configuration error",
+  });
+}
       // Generate unique booking reference
       const bookingReference = this.generateBookingReference();
 
@@ -72,9 +79,10 @@ export class UserCheckoutController {
         merchantAccountNumber: this.MERCHANT_ACCOUNT_NUMBER,
         cancellationUrl: `${process.env.FRONTEND_URL}/booking/cancelled/${checkout._id}`,
         clientReference: bookingReference,
-        payeeName: `${checkoutData.Traveler[0]?.NamePrefix} ${checkoutData.Traveler[0]?.GivenName} ${checkoutData.Traveler[0]?.Surname}`,
-        payeeMobileNumber: checkout.contactInfo.phone,
-        payeeEmail: checkout.contactInfo.email,
+        payeeName: (checkout.contactInfo?.name || "").trim(),
+        payeeMobileNumber: (checkout.contactInfo?.phone || "").trim(),
+        payeeEmail: (checkout.contactInfo?.email || "").trim(),
+      
       };
 
       // Create Basic Auth header for Hubtel
@@ -515,7 +523,7 @@ export class UserCheckoutController {
         },
       };
 
-      console.log('golRequest', golRequest)
+      console.log('golRequest', golRequest.GolApi.RequestDetail.BookReservationsRequest_3.toString())
       // Make request to GOL API
       const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
         headers: {
@@ -524,7 +532,7 @@ export class UserCheckoutController {
         },
       });
 
-      console.log('golResponse', golResponse.data)
+      console.log('golResponse', golResponse.data.GolApi.ResponseDetail.BookReservationsResponse_3.toString())
       // Extract reservation ID from response
       const golData = golResponse.data?.GolApi;
       const reservation =
@@ -536,11 +544,11 @@ export class UserCheckoutController {
         reservation.ReservationId ||
         null;
 
-      if (!reservationId) {
-        throw new Error("Failed to get reservation ID from GOL API response");
-      }
+      // if (!reservationId) {
+      //   throw new Error("Failed to get reservation ID from GOL API response");
+      // }
 
-      return reservationId;
+      return reservationId || "";
     } catch (error) {
       console.error("GOL reservation creation error:", error);
       throw new Error(
