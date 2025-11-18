@@ -3,6 +3,7 @@ import axios from "axios";
 import fs from "fs";
 import UserCheckout from "../schema/userCheckout.schema";
 import {CheckoutRequestDTO, CheckoutResponseDTO} from "../dto/userCheckout.dto";
+import { sendMail } from "../../../helpers/emailer";
 
 export class UserCheckoutController {
   private static HUBTEL_API_BASE_URL = "https://payproxyapi.hubtel.com";
@@ -284,8 +285,10 @@ export class UserCheckoutController {
   }
 
   // convert base64 to text/html
-  private static async convertBase64ToTextHtml(base64: string): Promise<string> {
-    const decoded = Buffer.from(base64, 'base64').toString('utf8');
+  private static async convertBase64ToTextHtml(
+    base64: string
+  ): Promise<string> {
+    const decoded = Buffer.from(base64, "base64").toString("utf8");
     return decoded;
   }
 
@@ -315,30 +318,61 @@ export class UserCheckoutController {
 
         if (golReservationResponse) {
           console.log("golReservationResponse", golReservationResponse);
-          let response = golReservationResponse?.map((reservation: any) => {
-            return {
-              reservationId: reservation.ReservationId,
-              paymentStatus: reservation.PaymentStatus,
-              reservationStatus: reservation.ReservationStatus,
-              paymentConditions: reservation.PaymentConditions,
-              flightPrice: reservation.FlightPrice,
-              servicePrices: reservation.ServicePrices,
-              document: reservation.Documents.Document.map((document: any) => {
-                return async () => ({
+          // Handle array or single object
+          const reservations = Array.isArray(golReservationResponse)
+            ? golReservationResponse
+            : [golReservationResponse];
+
+          const response = await Promise.all(
+            reservations.map(async (reservation: any) => {
+              // Handle Documents.Document - could be array or single object
+              const documents = reservation.Documents?.Document
+                ? Array.isArray(reservation.Documents.Document)
+                  ? reservation.Documents.Document
+                  : [reservation.Documents.Document]
+                : [];
+
+              // Process documents with Promise.all to await all conversions
+              const processedDocuments = await Promise.all(
+                documents.map(async (document: any) => ({
                   mime: document.Mime,
                   type: document.Type,
                   encodedMethod: document.EncodedMethod,
                   data: document.$t,
                   html: await this.convertBase64ToTextHtml(document.$t),
-                });
-              }),
-            };
-          });
+                }))
+              );
+
+              // loop through the processedDocuments and get the html and send mail
+              for (const document of processedDocuments) {
+                if (document.html && checkout.contactInfo?.email) {
+                  sendMail(
+                    checkout.contactInfo.email,
+                    checkout.contactInfo.name,
+                    'Melcom Travels - Flight Booking Confirmation',
+                    'golBookingHtml',
+                    document.html
+                  );
+                }
+              }
+
+              return {
+                reservationId: reservation.ReservationId,
+                paymentStatus: reservation.PaymentStatus,
+                reservationStatus: reservation.ReservationStatus,
+                paymentConditions: reservation.PaymentConditions,
+                flightPrice: reservation.FlightPrice,
+                servicePrices: reservation.ServicePrices,
+                document: processedDocuments,
+              };
+            })
+          );
+
           console.log("response", response);
           return res.status(200).json({
             success: true,
             message: "GOL booking created successfully",
-            data: response
+            data: response,
           });
         } else {
           return res.status(500).json({
@@ -346,8 +380,6 @@ export class UserCheckoutController {
             message: "Failed to create GOL reservation",
           });
         }
-
-      
       } catch (golError) {
         console.error("GOL reservation error:", golError);
         return res.status(500).json({
@@ -475,7 +507,7 @@ export class UserCheckoutController {
                       Name: "passenger_lastname",
                       $t: traveler.Surname || "",
                       Format: "ascii_alphabet",
-                    }
+                    },
                   ],
           },
         })
@@ -621,7 +653,7 @@ export class UserCheckoutController {
       };
       // store the golRequest in a file
       fs.writeFileSync("golRequest.json", JSON.stringify(golRequest, null, 2));
- 
+
       console.log("THIS.GOL_API_BASE_URL", this.GOL_API_BASE_URL);
       // Make request to GOL API
       const golResponse = await axios.post(this.GOL_API_BASE_URL, golRequest, {
@@ -630,14 +662,16 @@ export class UserCheckoutController {
           Accept: "application/json, text/plain, */*",
         },
       });
- 
+
       // Extract reservation ID from response
       const golData = golResponse.data.GolApi.ResponseDetail;
 
       // console.log("golResponse3 updated", golData.SystemRequestError_1.Error);
       fs.writeFileSync("golResponse.json", JSON.stringify(golData, null, 2));
       if (golData?.BookReservationsResponse_3?.BookedReservations) {
-        const reservation = golData?.BookReservationsResponse_3?.BookedReservations?.BookedReservation || [];
+        const reservation =
+          golData?.BookReservationsResponse_3?.BookedReservations
+            ?.BookedReservation || [];
         console.log("reservation", reservation);
         return reservation;
       } else if (
@@ -662,8 +696,7 @@ export class UserCheckoutController {
         throw new Error(
           golData?.BookReservationsError_3?.SystemRequestError_1?.Error
         );
-      }
-      else if (golData?.BookReservationsError_3?.Error) {
+      } else if (golData?.BookReservationsError_3?.Error) {
         let error = golData?.BookReservationsError_3?.Error.$t;
         throw new Error(error);
       } else {

@@ -31,6 +31,8 @@ export const sendMail = async (
         ? resetPasswordHtml(firstname, data)
         : html == "resetSuccessHtml"
         ? resetSuccessHtml(firstname)
+        : html == "golBookingHtml"
+        ? GolBookingHtml(data)
         : "No response",
   };
 
@@ -320,3 +322,6 @@ const resetPasswordHtml = (firstname, data) =>
 </body>
 </html>
 `;
+
+
+const GolBookingHtml = ( htmlData) => htmlData;
