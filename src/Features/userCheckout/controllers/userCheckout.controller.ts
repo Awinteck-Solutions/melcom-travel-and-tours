@@ -283,6 +283,12 @@ export class UserCheckoutController {
     }
   }
 
+  // convert base64 to text/html
+  private static async convertBase64ToTextHtml(base64: string): Promise<string> {
+    const decoded = Buffer.from(base64, 'base64').toString('utf8');
+    return decoded;
+  }
+
   // Handle Hubtel payment callback
   static async testGOlBooking(req: Request, res: Response) {
     try {
@@ -303,18 +309,45 @@ export class UserCheckoutController {
 
       // Create GOL API reservation
       try {
-        const golReservationResponse = await this.createGOLReservation(
+        const golReservationResponse: any = await this.createGOLReservation(
           checkout
         );
 
-        console.log("golReservationResponse", golReservationResponse);
+        if (golReservationResponse) {
+          console.log("golReservationResponse", golReservationResponse);
+          let response = golReservationResponse?.map((reservation: any) => {
+            return {
+              reservationId: reservation.ReservationId,
+              paymentStatus: reservation.PaymentStatus,
+              reservationStatus: reservation.ReservationStatus,
+              paymentConditions: reservation.PaymentConditions,
+              flightPrice: reservation.FlightPrice,
+              servicePrices: reservation.ServicePrices,
+              document: reservation.Documents.Document.map((document: any) => {
+                return async () => ({
+                  mime: document.Mime,
+                  type: document.Type,
+                  encodedMethod: document.EncodedMethod,
+                  data: document.$t,
+                  html: await this.convertBase64ToTextHtml(document.$t),
+                });
+              }),
+            };
+          });
+          console.log("response", response);
+          return res.status(200).json({
+            success: true,
+            message: "GOL booking created successfully",
+            data: response
+          });
+        } else {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to create GOL reservation",
+          });
+        }
 
-        return res.status(200).json({
-          success: true,
-          message: "GOL booking created successfully",
-          // data: golReservationResponse,
-          checkout,
-        });
+      
       } catch (golError) {
         console.error("GOL reservation error:", golError);
         return res.status(500).json({
@@ -604,10 +637,9 @@ export class UserCheckoutController {
       // console.log("golResponse3 updated", golData.SystemRequestError_1.Error);
       fs.writeFileSync("golResponse.json", JSON.stringify(golData, null, 2));
       if (golData?.BookReservationsResponse_3?.BookedReservations) {
-        const reservation = golData?.BookedReservations?.BookedReservation[0];
+        const reservation = golData?.BookReservationsResponse_3?.BookedReservations?.BookedReservation || [];
         console.log("reservation", reservation);
-        const reservationId = reservation?.ReservationId || null;
-        return reservationId;
+        return reservation;
       } else if (
         golData?.BookReservationsError_3?.ErrorWithDetails?.ErrorMessage
       ) {
