@@ -196,6 +196,8 @@ export class UserCheckoutController {
         console.log(
           "EARLY-Payment callback confirmed and completed successfully"
         );
+        checkout.paymentStatus = 'PAID';
+        await checkout.save();
         // Create GOL API reservation
         try {
           const golReservationResponse: any =
@@ -288,9 +290,9 @@ export class UserCheckoutController {
             hubtelStatusCheck?.responseCode === "0000" &&
             hubtelStatusCheck?.data?.status === "Paid"
           ) {
-            checkoutStatus = "CONFIRMED";
-            paymentStatus = "PAID";
-
+             
+            checkout.paymentStatus = 'PAID';
+            await checkout.save();
             // Create GOL API reservation
             try {
               const golReservationResponse: any =
