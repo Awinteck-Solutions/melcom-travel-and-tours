@@ -10,7 +10,7 @@ export const sendMail = async (
   const transporter = nodemailer.createTransport({
     host: process.env.MAIL_HOST,
     port: parseInt(process.env.MAIL_PORT || '465'),
-    secure: true,
+    // secure: true,
     // authMethod: "PLAIN",
     auth: {
       user: process.env.MAIL_USERNAME,
