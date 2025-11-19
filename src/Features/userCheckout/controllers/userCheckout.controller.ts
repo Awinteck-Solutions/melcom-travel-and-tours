@@ -583,7 +583,9 @@ export class UserCheckoutController {
               },
             ],
           },
-          ParameterGroup: [{
+          ParameterGroup:
+            // [
+            {
             Code: "passengerPerson",
             ParameterElement:
               traveler.PassengerType === "INF"
@@ -618,22 +620,23 @@ export class UserCheckoutController {
                       Format: "ascii_alphabet",
                     },
                   ],
-          },
-          {
-            "Code": "passengerServices",
-            "ParameterElement": [
-                {
-                    "Name": "passenger_frequent_flyer",
-                    "$t": ""
-                },
-                {
-                    "Name": "passenger_frequent_flyer_number",
-                    "$t": "",
-                    "Format": "alphanumeric"
-                }
-            ]
-        }
-          ],
+          }
+        //   ,{
+        //     "Code": "passengerServices",
+        //     "ParameterElement": [
+        //         {
+        //             "Name": "passenger_frequent_flyer",
+        //             "$t": ""
+        //         },
+        //         {
+        //             "Name": "passenger_frequent_flyer_number",
+        //             "$t": "",
+        //             "Format": "alphanumeric"
+        //         }
+        //     ]
+        // }
+            // ]
+          ,
         })
       );
 
